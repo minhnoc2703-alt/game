@@ -1,0 +1,1901 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thám Tử Ngữ Liệu 12 - Giải Đố Đọc Hiểu Thực Chiến</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Be Vietnam Pro & Lora -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Lora:ital,wght@0,500;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Be Vietnam Pro"', 'sans-serif'],
+                        serif: ['"Lora"', 'serif'],
+                    },
+                    colors: {
+                        academia: {
+                            950: '#0f0d0a',
+                            900: '#181410',
+                            800: '#251e18',
+                            700: '#362c23',
+                            600: '#4d3f32',
+                        },
+                        parchment: {
+                            50: '#fdfbf7',
+                            100: '#f9f3e5',
+                            200: '#f1e4c8',
+                            300: '#e5cfa3',
+                            800: '#433422',
+                            900: '#2c2216',
+                        },
+                        amberGold: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #14110e;
+            background-image: 
+                radial-gradient(circle at 15% 20%, rgba(217, 119, 6, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 85% 80%, rgba(180, 83, 9, 0.08) 0%, transparent 45%),
+                linear-gradient(180deg, #16120e 0%, #0f0d0a 100%);
+            color: #f7f2e7;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Hiệu ứng giấy cổ điển cho Hồ Sơ Ngữ Liệu */
+        .parchment-card {
+            background-color: #fbf6ea;
+            background-image: 
+                radial-gradient(rgba(180, 140, 80, 0.07) 1px, transparent 0),
+                linear-gradient(to bottom right, #fdfbf7, #f5ead2);
+            background-size: 24px 24px, 100% 100%;
+            color: #2c2216;
+            box-shadow: 
+                0 15px 35px -5px rgba(0, 0, 0, 0.6),
+                inset 0 0 35px rgba(161, 120, 66, 0.18);
+            border: 1px solid #dcc59a;
+        }
+
+        /* Hiệu ứng dòng ngữ liệu có thể tương tác */
+        .passage-segment {
+            position: relative;
+            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+            border-radius: 0.5rem;
+            padding: 0.45rem 0.65rem;
+            margin-bottom: 0.35rem;
+            border-left: 3px solid transparent;
+        }
+
+        .passage-segment:hover {
+            background-color: rgba(245, 158, 11, 0.14);
+            border-left-color: #d97706;
+        }
+
+        /* Khi ở bước 2: Truy tìm dấu vết bằng Kính Lúp */
+        .inspect-mode-active .passage-segment {
+            cursor: zoom-in;
+            border: 1px dashed rgba(180, 83, 9, 0.35);
+        }
+
+        .inspect-mode-active .passage-segment:hover {
+            background-color: rgba(251, 191, 36, 0.28);
+            border-color: #d97706;
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.18);
+        }
+
+        /* Dòng được chọn hoặc đúng/sai */
+        .segment-selected-correct {
+            background-color: rgba(16, 185, 129, 0.22) !important;
+            border-left: 4px solid #059669 !important;
+            border-color: #059669 !important;
+            font-weight: 600;
+        }
+
+        .segment-selected-wrong {
+            background-color: rgba(239, 68, 68, 0.2) !important;
+            border-left: 4px solid #dc2626 !important;
+            animation: shake 0.4s ease-in-out;
+        }
+
+        .segment-dimmed {
+            opacity: 0.35;
+            pointer-events: none;
+        }
+
+        /* Từ khóa phát sáng khi bật Kính Lúp Soi Dấu Hiệu */
+        .clue-highlight {
+            transition: all 0.25s ease;
+        }
+
+        .lens-enabled .clue-highlight {
+            background: linear-gradient(120deg, rgba(251, 191, 36, 0.45) 0%, rgba(245, 158, 11, 0.35) 100%);
+            border-bottom: 2px dashed #b45309;
+            padding: 0 4px;
+            border-radius: 4px;
+            color: #78350f;
+            font-weight: 600;
+            cursor: help;
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
+        }
+
+        /* Con dấu "ĐÃ PHÁ ÁN" / "CHUẨN BAREM" */
+        .stamp-badge {
+            display: inline-block;
+            border: 3px double #b91c1c;
+            color: #b91c1c;
+            padding: 0.2rem 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            transform: rotate(-5deg);
+            background-color: rgba(254, 226, 226, 0.7);
+            box-shadow: 0 2px 6px rgba(185, 28, 28, 0.15);
+        }
+
+        /* Hiệu ứng con trỏ ánh sáng kính lúp trên văn bản */
+        #parchment-container {
+            position: relative;
+            overflow: hidden;
+        }
+
+        #lens-spotlight {
+            pointer-events: none;
+            position: absolute;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(251, 191, 36, 0.22) 0%, rgba(251, 191, 36, 0.05) 55%, transparent 70%);
+            border: 2px solid rgba(217, 119, 6, 0.45);
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            z-index: 10;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.25);
+        }
+
+        .lens-enabled #lens-spotlight {
+            opacity: 1;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            50% { transform: translateX(6px); }
+            75% { transform: translateX(-4px); }
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.5); }
+            50% { box-shadow: 0 0 0 8px rgba(245, 158, 11, 0); }
+        }
+
+        .pulse-amber {
+            animation: pulseGlow 2s infinite;
+        }
+
+        /* Thanh cuộn tinh gọn */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #181410;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4d3f32;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #d97706;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased selection:bg-amber-500 selection:text-stone-950 flex flex-col min-h-screen">
+
+    <!-- ==================== HEADER: THANH TRẠNG THÁI THÁM TỬ ==================== -->
+    <header class="sticky top-0 z-30 bg-academia-900/95 backdrop-blur-md border-b border-amber-500/25 shadow-lg">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3">
+            
+            <!-- Logo & Tên Game -->
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-stone-950 shadow-md shadow-amber-500/20 border border-amber-300/50">
+                    <i class="fa-solid fa-magnifying-glass-chart text-xl"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold uppercase tracking-widest text-amber-400 bg-amber-500/15 px-2 py-0.5 rounded border border-amber-500/30">
+                            GDPT 2018 • Đọc Hiểu 4.0đ
+                        </span>
+                        <span id="rank-badge" class="text-xs font-semibold text-emerald-300 bg-emerald-950/80 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                            🕵️ Thám Tử Tập Sự
+                        </span>
+                    </div>
+                    <h1 class="text-base sm:text-xl font-extrabold tracking-tight text-amber-50">
+                        THÁM TỬ NGỮ LIỆU 12 <span class="hidden md:inline text-amber-400/80 font-normal text-sm">| Giải Đố Đọc Hiểu Thực Chiến</span>
+                    </h1>
+                </div>
+            </div>
+
+            <!-- Chỉ số Điểm Barem, Chuỗi Combo & Các nút chức năng -->
+            <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+                <!-- Điểm Hồ Sơ Hiện Tại -->
+                <div class="bg-academia-800 border border-amber-500/25 rounded-xl px-3 py-1.5 flex items-center gap-2">
+                    <i class="fa-solid fa-scale-balanced text-amber-400 text-sm"></i>
+                    <div class="text-xs">
+                        <div class="text-stone-400 leading-none">Điểm Chuyên Án</div>
+                        <div class="font-bold text-amber-300 text-sm"><span id="current-case-score">0.00</span> / 4.00đ</div>
+                    </div>
+                </div>
+
+                <!-- Tổng Điểm Tích Lũy -->
+                <div class="bg-academia-800 border border-amber-500/25 rounded-xl px-3 py-1.5 flex items-center gap-2">
+                    <i class="fa-solid fa-award text-amber-400 text-sm"></i>
+                    <div class="text-xs">
+                        <div class="text-stone-400 leading-none">Hồ Sơ Đã Phá</div>
+                        <div class="font-bold text-emerald-400 text-sm"><span id="solved-cases-count">0</span>/<span id="total-cases-count">5</span> Vụ Án</div>
+                    </div>
+                </div>
+
+                <!-- Combo Streak -->
+                <div class="hidden sm:flex bg-academia-800 border border-amber-500/25 rounded-xl px-3 py-1.5 items-center gap-1.5" title="Chuỗi suy luận đúng liên tiếp">
+                    <i class="fa-solid fa-fire-flame-curved text-orange-400 text-sm"></i>
+                    <span id="streak-counter" class="font-extrabold text-orange-300 text-sm">0</span>
+                </div>
+
+                <!-- Nút Mở Sổ Tay Bí Kíp -->
+                <button onclick="openModal('handbook-modal')" class="px-3 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40 text-xs sm:text-sm font-semibold transition flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-book-bookmark"></i>
+                    <span>Sổ Tay Bí Kíp</span>
+                </button>
+
+                <!-- Nút Tự Tạo Hồ Sơ Mới -->
+                <button onclick="openModal('custom-case-modal')" class="px-3 py-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 text-xs sm:text-sm font-semibold transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-folder-plus"></i>
+                    <span class="hidden sm:inline">Tạo Đề</span>
+                </button>
+
+                <!-- Nút Âm Thanh -->
+                <button id="sound-toggle-btn" onclick="toggleSound()" class="w-9 h-9 rounded-xl bg-academia-800 hover:bg-academia-700 text-amber-300 border border-amber-500/25 flex items-center justify-center transition" title="Bật/Tắt âm thanh">
+                    <i id="sound-icon" class="fa-solid fa-volume-high text-sm"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Thanh Chọn Hồ Sơ Chuyên Án (5 Thể Loại Trọng Tâm) -->
+        <div class="bg-academia-950/90 border-t border-stone-800">
+            <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2 flex items-center gap-2 overflow-x-auto no-scrollbar" id="case-tabs-container">
+                <!-- Render động các tab Hồ Sơ Vụ Án bằng JS -->
+            </div>
+        </div>
+    </header>
+
+    <!-- ==================== MAIN WORKSPACE: 2 CỘT THÁM TỬ ==================== -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-5 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- CỘT TRÁI (7/12): HỒ SƠ NGỮ LIỆU & KÍNH LÚP SOI VĂN BẢN -->
+        <section class="lg:col-span-7 flex flex-col gap-4">
+            
+            <!-- Thanh Công Cụ Soi Ngữ Liệu -->
+            <div class="bg-academia-800/90 border border-amber-500/25 rounded-2xl p-3 sm:p-4 flex flex-wrap items-center justify-between gap-3 shadow-lg">
+                <div class="flex items-center gap-2.5">
+                    <span id="case-genre-tag" class="px-2.5 py-1 rounded-lg bg-amber-500 text-stone-950 font-extrabold text-xs uppercase tracking-wider">
+                        THƠ HIỆN ĐẠI
+                    </span>
+                    <div>
+                        <h2 id="case-title" class="font-bold text-amber-100 text-sm sm:text-base leading-tight">
+                            Hồ Sơ #01: Bí Ẩn Mùa Quả & Giọt Mồ Hôi Mẹ
+                        </h2>
+                        <p id="case-source" class="text-xs text-stone-400 italic">
+                            Ngữ liệu ngoài SGK • Trích "Mẹ và quả" (Nguyễn Khoa Điềm)
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Nút Bật/Tắt Kính Lúp Soi Dấu Hiệu -->
+                <div class="flex items-center gap-2">
+                    <button id="toggle-lens-btn" onclick="toggleDetectiveLens()" class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-bold text-xs sm:text-sm shadow-md transition flex items-center gap-2">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <span id="lens-btn-text">Bật Kính Lúp Soi Dấu Hiệu</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Thông báo Hướng dẫn Tương tác Kính Lúp (Nổi bật khi ở Bước 2) -->
+            <div id="interactive-instruction-banner" class="hidden bg-gradient-to-r from-amber-900/80 via-amber-800/80 to-amber-900/80 border-2 border-amber-400 rounded-2xl p-3.5 text-amber-100 shadow-lg flex items-center gap-3 pulse-amber">
+                <div class="w-10 h-10 rounded-xl bg-amber-400 text-stone-950 flex items-center justify-center shrink-0 font-bold text-lg">
+                    <i class="fa-solid fa-hand-pointer"></i>
+                </div>
+                <div class="text-xs sm:text-sm">
+                    <span class="font-extrabold text-amber-300 uppercase tracking-wide block">Nhiệm vụ Kính Lúp Thực Chiến:</span>
+                    Hãy <strong>CLICK TRỰC TIẾP vào dòng thơ / câu văn</strong> trên trang giấy bên dưới có chứa bằng chứng ngôn từ mà câu hỏi đang truy tìm!
+                </div>
+            </div>
+
+            <!-- Tờ Giấy Hồ Sơ Ngữ Liệu (Parchment Card) -->
+            <div id="parchment-container" class="parchment-card rounded-2xl p-5 sm:p-7 relative transition-all duration-300">
+                <!-- Vòng sáng Kính Lúp di chuyển theo chuột -->
+                <div id="lens-spotlight"></div>
+
+                <!-- Đầu trang Hồ sơ -->
+                <div class="flex items-start justify-between border-b-2 border-amber-900/20 pb-4 mb-5 gap-4">
+                    <div>
+                        <div class="text-xs font-bold uppercase tracking-widest text-amber-900/70 mb-1 flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-signature"></i> VĂN BẢN NGỮ LIỆU ĐỌC HIỂU
+                        </div>
+                        <h3 id="passage-heading" class="font-serif text-xl sm:text-2xl font-bold text-parchment-900">
+                            Đọc đoạn trích sau và thực hiện các yêu cầu:
+                        </h3>
+                    </div>
+                    <div id="case-status-stamp" class="stamp-badge text-xs sm:text-sm shrink-0">
+                        ĐANG ĐIỀU TRA
+                    </div>
+                </div>
+
+                <!-- Nội dung các dòng/câu Ngữ liệu được đánh số [1], [2]... -->
+                <div id="passage-content" class="font-serif text-base sm:text-lg leading-relaxed text-parchment-900 space-y-1.5 select-none">
+                    <!-- Render động từng dòng/đoạn bằng JS -->
+                </div>
+
+                <!-- Chú thích nguồn & Chú thích từ khóa khi bật Kính Lúp -->
+                <div class="mt-6 pt-4 border-t border-amber-900/20 flex flex-wrap items-center justify-between gap-2 text-xs text-amber-950/80">
+                    <div id="passage-citation" class="italic font-serif">
+                        (Trích "Mẹ và quả", Nguyễn Khoa Điềm, Thơ Việt Nam thế kỉ XX)
+                    </div>
+                    <div class="flex items-center gap-1.5 font-sans font-medium text-amber-900">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <span>Mẹo: Bật <strong>Kính Lúp</strong> để xem giải mã các dấu hiệu nghệ thuật ẩn trong văn bản.</span>
+                    </div>
+                </div>
+
+                <!-- Khung hiển thị Giải mã Dấu hiệu Kính Lúp (Khi người chơi bật Kính Lúp) -->
+                <div id="lens-clue-drawer" class="hidden mt-4 bg-amber-900/10 border border-amber-800/30 rounded-xl p-3.5 font-sans text-xs sm:text-sm text-parchment-900">
+                    <div class="font-bold text-amber-900 mb-1.5 flex items-center gap-1.5">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>BÁO CÁO KÍNH LÚP SOI NGỮ LIỆU:</span>
+                    </div>
+                    <ul id="lens-clue-list" class="space-y-1.5 list-disc list-inside text-amber-950">
+                        <!-- Render các dấu hiệu nghệ thuật của văn bản -->
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- CỘT PHẢI (5/12): BẢNG ĐIỀU TRA 4 BƯỚC & QUYỀN TRỢ GIÚP -->
+        <section class="lg:col-span-5 flex flex-col gap-4 lg:sticky lg:top-28">
+            
+            <!-- Tiến trình 4 Bước Đọc Hiểu chuẩn cấu trúc Đề thi THPT -->
+            <div class="bg-academia-800/95 border border-amber-500/25 rounded-2xl p-4 shadow-xl">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-400">
+                        Tiến Trình Phá Án (Thang 4.0 Điểm)
+                    </span>
+                    <span id="step-level-indicator" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                        Bước 1/4 • Nhận biết (0.75đ)
+                    </span>
+                </div>
+
+                <!-- 4 Nút Chuyển Bước Điều Tra -->
+                <div class="grid grid-cols-4 gap-2" id="step-progress-bar">
+                    <!-- Render động 4 bước: Nhận biết (0.75) - Kính lúp (0.75) - Thông hiểu (1.0) - Vận dụng (1.5) -->
+                </div>
+            </div>
+
+            <!-- Khung Câu Hỏi Điều Tra Chính -->
+            <div class="bg-academia-800/95 border border-amber-500/30 rounded-2xl p-4 sm:p-5 shadow-2xl flex flex-col gap-4">
+                
+                <!-- Đầu câu hỏi: Cấp độ tư duy & Điểm Barem -->
+                <div class="flex items-center justify-between gap-2 border-b border-stone-700/80 pb-3">
+                    <div class="flex items-center gap-2">
+                        <span id="question-step-badge" class="w-8 h-8 rounded-lg bg-amber-500 text-stone-950 font-extrabold flex items-center justify-center text-sm">
+                            C1
+                        </span>
+                        <div>
+                            <div id="question-cognitive-level" class="text-xs font-bold uppercase tracking-wider text-amber-400">
+                                CẤP ĐỘ 1: NHẬN BIẾT THỂ LOẠI
+                            </div>
+                            <div id="question-type-desc" class="text-xs text-stone-400">
+                                Chọn phương án chuẩn xác nhất
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-2.5 py-1 rounded-lg bg-emerald-950 border border-emerald-500/40 text-emerald-300 font-bold text-xs shrink-0">
+                        +<span id="question-points">0.75</span> điểm
+                    </div>
+                </div>
+
+                <!-- Nội dung Câu hỏi -->
+                <div id="question-prompt" class="text-sm sm:text-base font-semibold text-amber-50 leading-relaxed">
+                    <!-- Nội dung câu hỏi -->
+                </div>
+
+                <!-- Hộp Gợi ý Phương pháp Barem (Ẩn mặc định, hiện khi bấm Trợ giúp Gợi ý) -->
+                <div id="question-hint-box" class="hidden bg-amber-500/10 border border-amber-400/40 rounded-xl p-3 text-xs sm:text-sm text-amber-200">
+                    <div class="font-bold text-amber-300 mb-1 flex items-center gap-1.5">
+                        <i class="fa-solid fa-lightbulb"></i> Mẹo Giải Mã Nhanh:
+                    </div>
+                    <p id="question-hint-text"></p>
+                </div>
+
+                <!-- Danh sách Phương án lựa chọn (Hoặc Bảng chọn dòng ngữ liệu) -->
+                <div id="options-container" class="space-y-2.5">
+                    <!-- Render các nút đáp án bằng JS -->
+                </div>
+
+                <!-- Ba Quyền Trợ Giúp Thám Tử -->
+                <div class="pt-2 border-t border-stone-700/80 flex items-center justify-between gap-2 flex-wrap">
+                    <span class="text-xs text-stone-400 font-medium">Công cụ trợ giúp:</span>
+                    <div class="flex items-center gap-2">
+                        <button id="lifeline-5050-btn" onclick="useLifeline5050()" class="px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-amber-300 border border-amber-500/30 text-xs font-semibold transition flex items-center gap-1.5 disabled:opacity-40 disabled:pointer-events-none">
+                            <i class="fa-solid fa-scissors"></i>
+                            <span>Loại 2 Nhiễu (50/50)</span>
+                        </button>
+                        <button id="lifeline-hint-btn" onclick="useLifelineHint()" class="px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-sky-300 border border-sky-500/30 text-xs font-semibold transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-compass"></i>
+                            <span>Gợi Ý Barem</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Hộp Giải Thích Chi Tiết Chuẩn Barem Bộ GD&ĐT (Hiện sau khi trả lời) -->
+                <div id="feedback-box" class="hidden rounded-xl p-4 border transition-all duration-300">
+                    <div class="flex items-start justify-between gap-2 mb-2">
+                        <div id="feedback-title" class="font-extrabold text-sm sm:text-base flex items-center gap-2">
+                            <!-- Tiêu đề Đúng / Sai -->
+                        </div>
+                        <span id="feedback-score-pill" class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">
+                            +0.75đ
+                        </span>
+                    </div>
+                    <div id="feedback-explanation" class="text-xs sm:text-sm text-stone-200 leading-relaxed space-y-1.5">
+                        <!-- Phân tích chi tiết Barem chấm thi -->
+                    </div>
+                    <div class="mt-3 pt-3 border-t border-white/10 flex justify-end">
+                        <button id="next-step-btn" onclick="goToNextStep()" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-extrabold text-xs sm:text-sm transition flex items-center gap-2 shadow-lg">
+                            <span id="next-step-btn-text">Tiếp Tục Điều Tra Bước 2</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <!-- ==================== MODAL 1: SỔ TAY BÍ KÍP ĐỌC HIỂU 12 ==================== -->
+    <div id="handbook-modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-academia-900 border border-amber-500/40 rounded-2xl max-w-4xl w-full max-h-[88vh] flex flex-col shadow-2xl overflow-hidden">
+            <!-- Header Modal -->
+            <div class="px-6 py-4 bg-academia-800 border-b border-amber-500/25 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-lg bg-amber-500 text-stone-950 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-book-open-reader"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-extrabold text-amber-100 text-lg">SỔ TAY BÍ KÍP ĐỌC HIỂU NGỮ VĂN 12 (GDPT 2018)</h3>
+                        <p class="text-xs text-stone-400">Công thức ăn trọn 4.0 điểm Đọc hiểu cho mọi ngữ liệu ngoài Sách giáo khoa</p>
+                    </div>
+                </div>
+                <button onclick="closeModal('handbook-modal')" class="w-8 h-8 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Nội dung Sổ tay -->
+            <div class="p-6 overflow-y-auto space-y-5 text-sm leading-relaxed text-stone-200">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Bí kíp 1: Thơ hiện đại -->
+                    <div class="bg-academia-800/80 border border-amber-500/20 rounded-xl p-4">
+                        <h4 class="font-bold text-amber-400 text-base mb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-feather-pointed"></i> 1. Nhận diện nhanh Thể thơ & Chủ thể trữ tình
+                        </h4>
+                        <ul class="space-y-1.5 text-xs sm:text-sm text-stone-300 list-disc list-inside">
+                            <li><strong>Thể thơ tự do:</strong> Số chữ trong các dòng dài ngắn không đều nhau, nhịp điệu linh hoạt theo mạch cảm xúc.</li>
+                            <li><strong>Thể thơ 5 chữ / 7 chữ / 8 chữ:</strong> Đếm số chữ (tiếng) ở các dòng thơ đều nhau xuyên suốt bài.</li>
+                            <li><strong>Chủ thể trữ tình:</strong> Thường xuất hiện trực tiếp qua đại từ <em>"tôi", "ta", "anh", "em", "chúng ta"</em> hoặc chủ thể ẩn (nhà thơ hóa thân/quan sát).</li>
+                        </ul>
+                    </div>
+
+                    <!-- Bí kíp 2: Truyện hiện đại -->
+                    <div class="bg-academia-800/80 border border-amber-500/20 rounded-xl p-4">
+                        <h4 class="font-bold text-amber-400 text-base mb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-user-secret"></i> 2. Ngôi kể, Điểm nhìn & Lời nửa trực tiếp
+                        </h4>
+                        <ul class="space-y-1.5 text-xs sm:text-sm text-stone-300 list-disc list-inside">
+                            <li><strong>Ngôi thứ nhất:</strong> Người kể xưng "tôi" (trực tiếp tham gia/chứng kiến). <strong>Ngôi thứ ba:</strong> Người kể giấu mình, gọi tên nhân vật.</li>
+                            <li><strong>Điểm nhìn bên trong:</strong> Kể xuyên qua tâm trạng, suy nghĩ thầm kín của nhân vật. <strong>Điểm nhìn bên ngoài:</strong> Miêu tả dáng vẻ, hành động khách quan.</li>
+                            <li><strong>Lời nửa trực tiếp:</strong> Lời của người kể chuyện nhưng tái hiện ý thức, giọng điệu độc thoại nội tâm của nhân vật (không dùng dấu ngoặc kép).</li>
+                        </ul>
+                    </div>
+
+                    <!-- Bí kíp 3: Công thức Biện pháp tu từ -->
+                    <div class="bg-academia-800/80 border border-emerald-500/30 rounded-xl p-4">
+                        <h4 class="font-bold text-emerald-400 text-base mb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-bullseye"></i> 3. Công thức 3 Bước ăn trọn 1.0đ Biện pháp tu từ
+                        </h4>
+                        <ol class="space-y-1.5 text-xs sm:text-sm text-stone-300 list-decimal list-inside">
+                            <li><strong>Bước 1 (Chỉ rõ dấu hiệu):</strong> Gọi đúng tên biện pháp tu từ + trích dẫn đúng từ ngữ/hình ảnh chứa biện pháp đó.</li>
+                            <li><strong>Bước 2 (Tác dụng Nghệ thuật):</strong> Giúp câu thơ/câu văn giàu hình ảnh, sinh động, gợi cảm, tạo nhịp điệu (nhấn mạnh/liệt kê/tương phản...).</li>
+                            <li><strong>Bước 3 (Tác dụng Nội dung & Thái độ tác giả):</strong> Làm nổi bật nội dung gì của đoạn trích? Qua đó thể hiện tình cảm, nỗi niềm gì của nhà văn/nhà thơ?</li>
+                        </ol>
+                    </div>
+
+                    <!-- Bí kíp 4: Kịch, Ký & Văn bản Nghị luận -->
+                    <div class="bg-academia-800/80 border border-amber-500/20 rounded-xl p-4">
+                        <h4 class="font-bold text-amber-400 text-base mb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-masks-theater"></i> 4. Đặc trưng Kịch, Tùy bút & Nghị luận
+                        </h4>
+                        <ul class="space-y-1.5 text-xs sm:text-sm text-stone-300 list-disc list-inside">
+                            <li><strong>Kịch bản văn học:</strong> Gồm <em>Chỉ dẫn sân khấu</em> (thường in nghiêng trong ngoặc đơn: cử chỉ, ánh sáng, bối cảnh), <em>Lời đối thoại/độc thoại</em> và <em>Xung đột kịch</em>.</li>
+                            <li><strong>Tùy bút / Tản văn:</strong> Kết hợp giữa yếu tố <em>Tự sự (ghi chép sự thật)</em> và <em>Trữ tình</em>, đậm dấu ấn cái "tôi" tài hoa, uyên bác.</li>
+                            <li><strong>Câu Vận dụng (1.5đ):</strong> Trả lời thành đoạn ngắn 5–7 dòng: <em>Nêu trực tiếp thông điệp/ý kiến -> Lý giải 2-3 ý vì sao -> Rút ra bài học hành động thực tế</em>.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Modal -->
+            <div class="px-6 py-3 bg-academia-800 border-t border-stone-700 flex justify-end">
+                <button onclick="closeModal('handbook-modal')" class="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-sm">
+                    Đã Nắm Rõ Bí Kíp
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL 2: TỰ TẠO HỒ SƠ NGỮ LIỆU MỚI ==================== -->
+    <div id="custom-case-modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-academia-900 border border-emerald-500/40 rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <div class="px-6 py-4 bg-academia-800 border-b border-stone-700 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-folder-plus text-emerald-400 text-xl"></i>
+                    <h3 class="font-extrabold text-amber-100 text-base sm:text-lg">TẠO HỒ SƠ NGỮ LIỆU MỚI ĐỂ ÔN TẬP</h3>
+                </div>
+                <button onclick="closeModal('custom-case-modal')" class="w-8 h-8 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="custom-case-form" onsubmit="handleCreateCustomCase(event)" class="p-6 overflow-y-auto space-y-4 text-xs sm:text-sm">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-stone-300 font-semibold mb-1">Tên Chuyên Án / Đề Đọc Hiểu *</label>
+                        <input id="custom-title" type="text" required placeholder="VD: Hồ Sơ #06: Tiếng Vọng Rừng Xà Nu" class="w-full px-3 py-2 rounded-xl bg-academia-800 border border-stone-600 text-amber-50 focus:border-amber-400 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-stone-300 font-semibold mb-1">Thể loại Ngữ liệu *</label>
+                        <select id="custom-genre" class="w-full px-3 py-2 rounded-xl bg-academia-800 border border-stone-600 text-amber-50 focus:border-amber-400 focus:outline-none">
+                            <option value="THƠ HIỆN ĐẠI">Thơ Hiện Đại</option>
+                            <option value="TRUYỆN NGẮN">Truyện Ngắn Hiện Đại</option>
+                            <option value="KÝ & TÙY BÚT">Ký & Tùy Bút</option>
+                            <option value="KỊCH HỌC">Kịch Bản Văn Học</option>
+                            <option value="NGHỊ LUẬN">Văn Bản Nghị Luận</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-stone-300 font-semibold mb-1">Nguồn trích dẫn (Tác giả, Tác phẩm) *</label>
+                    <input id="custom-source" type="text" required placeholder="VD: Trích 'Mùa lá rụng trong vườn' - Ma Văn Kháng" class="w-full px-3 py-2 rounded-xl bg-academia-800 border border-stone-600 text-amber-50 focus:border-amber-400 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-stone-300 font-semibold mb-1">
+                        Nội dung Ngữ liệu (Mỗi câu/dòng thơ xuống 1 dòng để Kính Lúp đánh số tự động) *
+                    </label>
+                    <textarea id="custom-lines" rows="4" required placeholder="Nhập ít nhất 3 dòng ngữ liệu (mỗi dòng 1 câu hoặc 1 câu thơ)..." class="w-full px-3 py-2 rounded-xl bg-academia-800 border border-stone-600 text-amber-50 focus:border-amber-400 focus:outline-none"></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-stone-800">
+                    <div>
+                        <label class="block text-amber-300 font-semibold mb-1">Câu 1 (Nhận biết - 0.75đ) *</label>
+                        <input id="custom-q1" type="text" required placeholder="VD: Xác định thể thơ của đoạn trích trên?" class="w-full px-3 py-2 rounded-xl bg-academia-800 border border-stone-600 text-amber-50">
+                    </div>
+                    <div>
+                        <label class="block text-emerald-300 font-semibold mb-1">Đáp án Đúng Câu 1 *</label>
+                        <input id="custom-q1-correct" type="text" required placeholder="VD: Thể thơ tự do" class="w-full px-3 py-2 rounded-xl bg-academia-800 border border-stone-600 text-amber-50">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-amber-300 font-semibold mb-1">Câu 2 (Truy tìm bằng Kính Lúp - 0.75đ) *</label>
+                        <input id="custom-q2" type="text" required placeholder="VD: Click vào dòng chứa biện pháp tu từ so sánh?" class="w-full px-3 py-2 rounded-xl bg-academia-800 border border-stone-600 text-amber-50">
+                    </div>
+                    <div>
+                        <label class="block text-emerald-300 font-semibold mb-1">Số thứ tự dòng đúng (Tính từ dòng 1) *</label>
+                        <input id="custom-q2-line" type="number" min="1" value="1" required class="w-full px-3 py-2 rounded-xl bg-academia-800 border border-stone-600 text-amber-50">
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t border-stone-700">
+                    <button type="button" onclick="closeModal('custom-case-modal')" class="px-4 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300 font-semibold">
+                        Hủy
+                    </button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-extrabold">
+                        Lưu & Mở Hồ Sơ Này
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL 3: TỔNG KẾT HỒ SƠ CHUYÊN ÁN ==================== -->
+    <div id="case-summary-modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-academia-900 border-2 border-amber-500/50 rounded-2xl max-w-lg w-full p-6 text-center shadow-2xl space-y-4">
+            <div class="w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-400 text-amber-300 flex items-center justify-center mx-auto text-3xl">
+                <i class="fa-solid fa-medal"></i>
+            </div>
+            <div class="text-xs font-bold uppercase tracking-widest text-amber-400">HỒ SƠ CHUYÊN ÁN HOÀN TẤT</div>
+            <h3 id="summary-case-title" class="text-xl font-extrabold text-amber-50"></h3>
+            
+            <div class="grid grid-cols-2 gap-3 bg-academia-800 p-4 rounded-xl border border-stone-700">
+                <div>
+                    <div class="text-xs text-stone-400">Điểm Đọc Hiểu (Thang 4.0)</div>
+                    <div id="summary-score-4" class="text-2xl font-extrabold text-emerald-400">4.00 / 4.00</div>
+                </div>
+                <div>
+                    <div class="text-xs text-stone-400">Quy Đổi Thang Điểm 10</div>
+                    <div id="summary-score-10" class="text-2xl font-extrabold text-amber-400">10.0 / 10</div>
+                </div>
+            </div>
+
+            <p id="summary-comment" class="text-xs sm:text-sm text-stone-300 leading-relaxed"></p>
+
+            <div class="flex items-center justify-center gap-3 pt-2">
+                <button onclick="replayCurrentCase()" class="px-4 py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs sm:text-sm font-semibold transition">
+                    <i class="fa-solid fa-rotate-right mr-1"></i> Điều Tra Lại
+                </button>
+                <button onclick="goToNextCase()" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs sm:text-sm font-extrabold transition shadow-lg">
+                    Chuyển Sang Chuyên Án Tiếp Theo <i class="fa-solid fa-forward-step ml-1"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== JAVASCRIPT: DỮ LIỆU 5 CHUYÊN ÁN & ENGINE THÁM TỬ ==================== -->
+    <script>
+        // ================= 1. HỆ THỐNG ÂM THANH (WEB AUDIO API) =================
+        let soundEnabled = true;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) audioCtx = new AudioContextClass();
+            }
+        }
+
+        function playTone(type) {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                if (!audioCtx) return;
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'correct') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(659.25, now + 0.09); // E5
+                    osc.frequency.setValueAtTime(783.99, now + 0.18); // G5
+                    gain.gain.setValueAtTime(0.16, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.42);
+                    osc.start(now);
+                    osc.stop(now + 0.42);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.setValueAtTime(165, now + 0.15);
+                    gain.gain.setValueAtTime(0.14, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                } else if (type === 'lens') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.18);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                } else if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, now);
+                    gain.gain.setValueAtTime(0.06, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+                    osc.start(now);
+                    osc.stop(now + 0.06);
+                }
+            } catch (err) {
+                console.warn('Audio error:', err);
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('sound-icon');
+            icon.className = soundEnabled ? 'fa-solid fa-volume-high text-sm' : 'fa-solid fa-volume-xmark text-sm text-stone-500';
+            if (soundEnabled) playTone('click');
+        }
+
+        // ================= 2. NGÂN HÀNG 5 HỒ SƠ VỤ ÁN NGỮ LIỆU (CHUẨN GDPT 2018) =================
+        const defaultCases = [
+            // ---------------- HỒ SƠ #01: THƠ HIỆN ĐẠI ----------------
+            {
+                id: 'case-01',
+                code: 'Hồ Sơ #01',
+                genre: 'THƠ HIỆN ĐẠI',
+                title: 'Bí Ẩn Mùa Quả & Giọt Mồ Hôi Mẹ',
+                source: 'Trích "Mẹ và quả" – Nguyễn Khoa Điềm (Ngữ liệu Thơ hiện đại)',
+                citation: '(Nguyễn Khoa Điềm, "Mẹ và quả", in trong Tuyển tập 40 năm Thơ Việt Nam 1945–1985)',
+                segments: [
+                    { id: 1, html: 'Những mùa quả mẹ tôi hái được' },
+                    { id: 2, html: 'Mẹ vẫn trông vào tay mẹ vun trồng' },
+                    { id: 3, html: 'Những mùa quả <span class="clue-highlight" title="Phép đối & Điệp cấu trúc gợi quy luật tuần hoàn">lặn rồi lại mọc</span>' },
+                    { id: 4, html: '<span class="clue-highlight" title="So sánh tu từ: Quả mọc như mặt trời, như mặt trăng">Như mặt trời, khi như mặt trăng</span>.' },
+                    { id: 5, html: 'Lũ chúng tôi từ tay mẹ lớn lên' },
+                    { id: 6, html: 'Còn những bí và bầu thì lớn xuống' },
+                    { id: 7, html: 'Chúng mang <span class="clue-highlight" title="Ẩn dụ chuyển đổi cảm giác & kết tinh sự nhọc nhằn">dáng giọt mồ hôi mặn</span>' },
+                    { id: 8, html: 'Rỏ xuống lòng thầm lặng mẹ tôi.' },
+                    { id: 9, html: 'Và chúng tôi, một thứ <span class="clue-highlight" title="Ẩn dụ: Con cái là mùa quả quý giá nhất đời mẹ">quả trên đời</span>' },
+                    { id: 10, html: 'Bảy mươi tuổi mẹ đợi chờ được hái' },
+                    { id: 11, html: 'Tôi hoảng sợ ngày bàn tay mẹ mỏi' },
+                    { id: 12, html: 'Mình vẫn còn <span class="clue-highlight" title="Ẩn dụ cho sự chưa trưởng thành, chưa kịp báo hiếu">một thứ quả non xanh</span>?' }
+                ],
+                lensClues: [
+                    '<strong>Dấu hiệu Thể loại:</strong> Các dòng thơ có độ dài 7–8 tiếng linh hoạt -> <em>Thể thơ tự do</em>; Chủ thể trữ tình xuất hiện trực tiếp qua đại từ <em>"tôi", "lũ chúng tôi"</em>.',
+                    '<strong>Dòng [4]:</strong> Biện pháp <em>So sánh</em> ("Như mặt trời, khi như mặt trăng") tôn vinh vẻ đẹp rạng rỡ, bền bỉ của thành quả lao động từ đôi tay mẹ.',
+                    '<strong>Dòng [7]:</strong> Hình ảnh <em>"dáng giọt mồ hôi mặn"</em> liên tưởng hình dáng quả bầu, quả bí với giọt mồ hôi tần tảo của mẹ.',
+                    '<strong>Dòng [9] & [12]:</strong> Biện pháp <em>Ẩn dụ</em> ("một thứ quả trên đời", "quả non xanh") + <em>Câu hỏi tu từ</em> cuối bài thể hiện nỗi khắc khoải sợ chưa kịp trưởng thành để báo đáp công ơn mẹ.'
+                ],
+                steps: [
+                    {
+                        stepNumber: 1,
+                        level: 'BƯỚC 1: NHẬN BIẾT (0.75 ĐIỂM)',
+                        type: 'mcq',
+                        points: 0.75,
+                        prompt: 'Xác định thể thơ và dấu hiệu nhận biết chủ thể trữ tình trong đoạn trích "Mẹ và quả" ở bên trái?',
+                        hint: 'Hãy đếm số tiếng trong các dòng thơ (có dòng 7 chữ, có dòng 8 chữ) và chú ý đại từ nhân xưng ở dòng [1], [5], [11].',
+                        options: [
+                            'Thể thơ tự do; chủ thể trữ tình xuất hiện trực tiếp qua các từ xưng hô "tôi", "lũ chúng tôi".',
+                            'Thể thơ thất ngôn bát cú Đường luật; chủ thể trữ tình ẩn hoàn toàn sau bức tranh thiên nhiên.',
+                            'Thể thơ lục bát truyền thống; chủ thể trữ tình là người mẹ đang trực tiếp trò chuyện với con.',
+                            'Thể thơ tám chữ đều đặn; chủ thể trữ tình là người quan sát khách quan ngoài cuộc.'
+                        ],
+                        correctIndex: 0,
+                        explanation: '<strong>Chuẩn Barem Bộ GD&ĐT (0.75đ):</strong><br>• <strong>Thể thơ:</strong> Tự do (các dòng thơ 7–8 chữ đan xen linh hoạt, không bị gò bó niêm luật cố định).<br>• <strong>Chủ thể trữ tình:</strong> Xuất hiện trực tiếp (nhân vật trữ tình người con xưng <em>"tôi", "lũ chúng tôi"</em>).'
+                    },
+                    {
+                        stepNumber: 2,
+                        level: 'BƯỚC 2: TRUY TÌM DẤU VẾT BẰNG KÍNH LÚP (0.75 ĐIỂM)',
+                        type: 'line-select',
+                        points: 0.75,
+                        prompt: 'Dùng Kính Lúp CLICK TRỰC TIẾP vào dòng thơ trong văn bản bên trái có sử dụng biện pháp tu từ SO SÁNH để ca ngợi quy luật sinh trưởng kỳ diệu của những mùa quả mẹ trồng!',
+                        hint: 'Tìm dòng thơ có từ chỉ quan hệ so sánh "Như..." gắn với các hình ảnh vũ trụ rạng ngời.',
+                        targetLineIds: [4],
+                        options: [
+                            { label: 'Dòng [2]: "Mẹ vẫn trông vào tay mẹ vun trồng"', lineId: 2 },
+                            { label: 'Dòng [4]: "Như mặt trời, khi như mặt trăng."', lineId: 4 },
+                            { label: 'Dòng [6]: "Còn những bí và bầu thì lớn xuống"', lineId: 6 },
+                            { label: 'Dòng [10]: "Bảy mươi tuổi mẹ đợi chờ được hái"', lineId: 10 }
+                        ],
+                        correctIndex: 1,
+                        explanation: '<strong>Chuẩn Barem Bộ GD&ĐT (0.75đ):</strong><br>Dòng thơ <strong>[4] "Như mặt trời, khi như mặt trăng"</strong> sử dụng phép so sánh tu từ đặc sắc: ví những mùa quả mẹ vun trồng tỏa sáng và tuần hoàn bền bỉ như nhật nguyệt, đem lại nguồn sống ấm áp cho gia đình.'
+                    },
+                    {
+                        stepNumber: 3,
+                        level: 'BƯỚC 3: THÔNG HIỂU (1.0 ĐIỂM)',
+                        type: 'mcq',
+                        points: 1.0,
+                        prompt: 'Phân tích tác dụng của biện pháp tu từ ẨN DỤ và CÂU HỎI TU TỪ trong hai dòng thơ cuối: "Tôi hoảng sợ ngày bàn tay mẹ mỏi / Mình vẫn còn một thứ quả non xanh?" theo đúng công thức chấm thi?',
+                        hint: 'Đáp án đạt điểm tối đa phải nêu đủ 2 vế: Tác dụng Nghệ thuật (hình ảnh, giọng điệu) + Tác dụng Nội dung & Thái độ tác giả.',
+                        options: [
+                            'Về nghệ thuật: tạo hình ảnh giàu sức gợi, giọng điệu khắc khoải, trăn trở. Về nội dung: thể hiện nỗi lo âu, day dứt của người con khi sợ thời gian làm mẹ già yếu mà mình vẫn chưa đủ trưởng thành, chín chắn để báo hiếu mẹ.',
+                            'Chỉ nhằm mục đích giải thích quy luật sinh học tự nhiên của các loại cây ăn quả trong vườn nhà khi chưa đến mùa thu hoạch.',
+                            'Về nghệ thuật: giúp câu thơ cân đối nhịp nhàng như ca dao. Về nội dung: khuyên con người nên trồng nhiều cây xanh để bảo vệ môi trường.',
+                            'Thể hiện sự trách móc của người con đối với sự khắc nghiệt của thiên nhiên khiến cây cối trong vườn chậm kết trái.'
+                        ],
+                        correctIndex: 0,
+                        explanation: '<strong>Công thức ăn trọn 1.0đ Barem:</strong><br>• <strong>Nghệ thuật (0.25đ):</strong> Hình ảnh ẩn dụ <em>"quả non xanh"</em> giàu tính biểu tượng kết hợp câu hỏi tu từ tạo giọng điệu khắc khoải, suy tư sâu lắng.<br>• <strong>Nội dung & Tình cảm (0.75đ):</strong> Diễn tả sự thức tỉnh và nỗi sợ hãi rất nhân văn của người con trước sự hữu hạn của tuổi già người mẹ, tự vấn bản thân phải sống trưởng thành và có ích hơn.'
+                    },
+                    {
+                        stepNumber: 4,
+                        level: 'BƯỚC 4: VẬN DỤNG VIẾT ĐOẠN NGẮN (1.5 ĐIỂM)',
+                        type: 'mcq',
+                        points: 1.5,
+                        prompt: 'Đề bài yêu cầu: "Từ nỗi sợ Mình vẫn còn một thứ quả non xanh của tác giả, anh/chị hãy rút ra một bài học ý nghĩa nhất cho bản thân (trình bày 5–7 dòng)". Cách triển khai nào dưới đây đạt trọn 1.5 điểm?',
+                        hint: 'Đoạn trả lời câu Vận dụng 1.5đ cần đủ 3 ý: Gọi tên rõ bài học -> Lý giải vì sao (gắn với thời gian của cha mẹ và trách nhiệm bản thân) -> Hành động cụ thể.',
+                        options: [
+                            'Nêu rõ bài học về việc chủ động trưởng thành sớm để báo hiếu cha mẹ; lý giải rằng thời gian của mẹ cha là hữu hạn nên sự trì hoãn của con cái sẽ để lại nuối tiếc; từ đó khẳng định hành động rèn luyện tri thức, nhân cách và yêu thương gia đình ngay từ hôm nay.',
+                            'Chép lại nguyên văn 4 câu thơ cuối bài rồi cảm thán rằng bài thơ rất hay, rất xúc động và em rất yêu quý mẹ của mình.',
+                            'Chỉ gạch đầu dòng 1 câu duy nhất: "Bài học rút ra là chúng ta phải chăm chỉ học tập tốt và vâng lời ông bà cha mẹ."',
+                            'Kể lại một câu chuyện dài 15 dòng về một kỷ niệm đi chợ cùng mẹ hồi nhỏ mà không nhắc gì đến hình ảnh "quả non xanh" hay thông điệp trưởng thành.'
+                        ],
+                        correctIndex: 0,
+                        explanation: '<strong>Chuẩn Barem Câu Vận Dụng (1.5đ):</strong><br>• <strong>Xác định đúng bài học (0.5đ):</strong> Ý thức tự hoàn thiện, trưởng thành trước khi cha mẹ già yếu.<br>• <strong>Lý giải thuyết phục, sâu sắc (0.75đ):</strong> Thời gian không chờ đợi, sự trưởng thành của con chính là "mùa quả ngọt" lớn nhất cha mẹ mong chờ.<br>• <strong>Diễn đạt mạch lạc, gắn hành động thực tế (0.25đ).</strong>'
+                    }
+                ]
+            },
+
+            // ---------------- HỒ SƠ #02: TRUYỆN NGẮN HIỆN ĐẠI ----------------
+            {
+                id: 'case-02',
+                code: 'Hồ Sơ #02',
+                genre: 'TRUYỆN NGẮN',
+                title: 'Chuyến Phà Đêm & Ngọn Đèn Bên Sông',
+                source: 'Trích truyện ngắn hiện đại (Đặc trưng Điểm nhìn & Lời nửa trực tiếp)',
+                citation: '(Ngữ liệu mô phỏng chuẩn cấu trúc Đọc hiểu Truyện ngắn hiện đại GDPT 2018)',
+                segments: [
+                    { id: 1, html: '<span class="clue-highlight" title="Ngôi kể thứ ba: Người kể giấu mình, gọi tên nhân vật ông Sáu">Ông Sáu</span> đứng lặng trên mũi chiếc phà sắt cuối ngày, mắt đăm đắm nhìn về phía bờ bên kia.' },
+                    { id: 2, html: 'Gió chướng thổi rát mặt, mang theo mùi phù sa ngai ngái và tiếng sóng vỗ ì oạp vào mạn thuyền.' },
+                    { id: 3, html: 'Từ ngày cây cầu dây văng khánh thành ở thượng lưu, bến phà cũ thưa hẳn bóng người qua lại.' },
+                    { id: 4, html: '<span class="clue-highlight" title="Lời nửa trực tiếp: Lời người kể nhưng mang giọng điệu tự vấn của nhân vật">Bỏ bến lúc này thì dễ quá, nhưng còn những người gánh rau khuya không đủ sức đạp xe vòng lên cầu lớn thì sao?</span>' },
+                    { id: 5, html: '<span class="clue-highlight" title="Điểm nhìn bên trong: Đi sâu vào tâm tư nhân vật">Nỗi băn khoăn ấy cứ trở đi trở lại</span> trong lòng người lái phà già suốt mấy mùa nước nổi.' },
+                    { id: 6, html: 'Ông với tay vặn cao ngọn đèn bão treo trước mũi phà, <span class="clue-highlight" title="Chi tiết nghệ thuật biểu tượng cho lòng nhân hậu">quầng sáng vàng ấm áp</span> loang ra trên mặt sông tối thẫm.' },
+                    { id: 7, html: 'Dưới bến lầy, bóng một bà cụ gánh hàng bông vừa kịp bước xuống trong tiếng thở phào nhẹ nhõm.' }
+                ],
+                lensClues: [
+                    '<strong>Dòng [1]:</strong> Người kể chuyện gọi tên nhân vật (<em>"Ông Sáu"</em>), không xưng "tôi" -> <em>Ngôi kể thứ ba</em>.',
+                    '<strong>Dòng [4]:</strong> Câu hỏi không nằm trong dấu ngoặc kép nhưng tái hiện nguyên vẹn tiếng lòng trăn trở của ông Sáu -> <em>Lời nửa trực tiếp</em> & <em>Điểm nhìn bên trong</em>.',
+                    '<strong>Dòng [6]:</strong> Chi tiết <em>"ngọn đèn bão"</em> và <em>"quầng sáng vàng ấm áp"</em> là biểu tượng cho tình người nghĩa tình, tử tế giữa đời thường.'
+                ],
+                steps: [
+                    {
+                        stepNumber: 1,
+                        level: 'BƯỚC 1: NHẬN BIẾT (0.75 ĐIỂM)',
+                        type: 'mcq',
+                        points: 0.75,
+                        prompt: 'Xác định ngôi kể và điểm nhìn trần thuật chủ đạo được nhà văn sử dụng trong đoạn trích trên?',
+                        hint: 'Chú ý cách người kể gọi tên nhân vật "Ông Sáu" và cách câu văn đi sâu vào suy nghĩ thầm kín trong lòng ông ở dòng [4], [5].',
+                        options: [
+                            'Ngôi kể thứ ba; kết hợp điểm nhìn bên ngoài (tả cảnh bến phà) với điểm nhìn bên trong (nhập vào nội tâm nhân vật ông Sáu).',
+                            'Ngôi kể thứ nhất; nhân vật ông Sáu trực tiếp xưng "tôi" để kể lại cuộc đời mình.',
+                            'Ngôi kể thứ hai; người kể chuyện đang trực tiếp đối thoại với bà cụ gánh hàng bông.',
+                            'Ngôi kể thứ nhất số nhiều ("chúng tôi") và chỉ sử dụng duy nhất điểm nhìn khách quan bên ngoài.'
+                        ],
+                        correctIndex: 0,
+                        explanation: '<strong>Chuẩn Barem Bộ GD&ĐT (0.75đ):</strong><br>• <strong>Ngôi kể:</strong> Ngôi thứ ba (người kể chuyện hàm ẩn).<br>• <strong>Điểm nhìn:</strong> Có sự dịch chuyển linh hoạt từ điểm nhìn bên ngoài (quan sát dáng đứng, gió sông) sang <em>điểm nhìn bên trong</em> (thấu suốt nỗi trăn trở của ông Sáu).'
+                    },
+                    {
+                        stepNumber: 2,
+                        level: 'BƯỚC 2: TRUY TÌM DẤU VẾT BẰNG KÍNH LÚP (0.75 ĐIỂM)',
+                        type: 'line-select',
+                        points: 0.75,
+                        prompt: 'Dùng Kính Lúp CLICK TRỰC TIẾP vào câu văn trong đoạn trích mang đặc trưng của "LỜI NỬA TRỰC TIẾP" (lời của người kể chuyện nhưng tái hiện suy nghĩ, giọng điệu độc thoại nội tâm của ông Sáu)!',
+                        hint: 'Tìm câu văn có hình thức câu hỏi tự vấn về những người gánh rau khuya nhưng không đặt trong dấu ngoặc kép.',
+                        targetLineIds: [4],
+                        options: [
+                            { label: 'Câu [2]: "Gió chướng thổi rát mặt, mang theo mùi phù sa..."', lineId: 2 },
+                            { label: 'Câu [4]: "Bỏ bến lúc này thì dễ quá, nhưng còn những người gánh rau khuya..."', lineId: 4 },
+                            { label: 'Câu [6]: "Ông với tay vặn cao ngọn đèn bão treo trước mũi phà..."', lineId: 6 },
+                            { label: 'Câu [7]: "Dưới bến lầy, bóng một bà cụ gánh hàng bông vừa kịp bước xuống..."', lineId: 7 }
+                        ],
+                        correctIndex: 1,
+                        explanation: '<strong>Chuẩn Barem Bộ GD&ĐT (0.75đ):</strong><br>Câu <strong>[4] "Bỏ bến lúc này thì dễ quá, nhưng còn những người gánh rau khuya không đủ sức đạp xe vòng lên cầu lớn thì sao?"</strong> chính là <em>lời nửa trực tiếp</em>: về hình thức vẫn thuộc mạch trần thuật ngôi thứ ba, nhưng về ngữ điệu ("thì dễ quá", "thì sao?") lại chính là tiếng lòng tự vấn của ông Sáu.'
+                    },
+                    {
+                        stepNumber: 3,
+                        level: 'BƯỚC 3: THÔNG HIỂU (1.0 ĐIỂM)',
+                        type: 'mcq',
+                        points: 1.0,
+                        prompt: 'Chi tiết "Ông với tay vặn cao ngọn đèn bão treo trước mũi phà, quầng sáng vàng ấm áp loang ra trên mặt sông tối thẫm" ở câu [6] mang ý nghĩa nghệ thuật và nội dung gì?',
+                        hint: 'Trong truyện ngắn, chi tiết "ánh đèn" trong đêm tối luôn mang tầng nghĩa tả thực kết hợp tầng nghĩa biểu tượng cho tâm hồn nhân vật.',
+                        options: [
+                            'Vừa tả thực tín hiệu báo chuyến phà đêm vẫn hoạt động, vừa là biểu tượng nghệ thuật cho tấm lòng nhân hậu, sự sẻ chia ấm áp của ông Sáu dành cho những phận người nghèo khó.',
+                            'Chỉ đơn thuần thông báo rằng ông Sáu bị kém thị lực nên cần vặn đèn sáng hơn để nhìn rõ mặt nước.',
+                            'Thể hiện sự đối lập gay gắt giữa công nghệ đèn dầu lạc hậu và hệ thống đèn điện hiện đại trên cầu dây văng.',
+                            'Chứng tỏ bến phà đêm rất đông đúc khách du lịch qua lại nên cần trang trí thêm ánh sáng.'
+                        ],
+                        correctIndex: 0,
+                        explanation: '<strong>Chuẩn Barem Bộ GD&ĐT (1.0đ):</strong><br>• <strong>Ý nghĩa tả thực & kết cấu (0.5đ):</strong> Tạo điểm nhấn ánh sáng xua tan bóng tối đêm sông nước, giúp bà cụ bán hàng bông nhận ra chuyến phà còn đợi.<br>• <strong>Ý nghĩa biểu tượng (0.5đ):</strong> Tượng trưng cho ngọn lửa của tình người, lòng trắc ẩn và trách nhiệm thầm lặng của người lao động bình dị.'
+                    },
+                    {
+                        stepNumber: 4,
+                        level: 'BƯỚC 4: VẬN DỤNG VIẾT ĐOẠN NGẮN (1.5 ĐIỂM)',
+                        type: 'mcq',
+                        points: 1.5,
+                        prompt: 'Khi xã hội phát triển hiện đại (như cây cầu dây văng thay thế bến phà), theo anh/chị vì sao sự thấu cảm với những người yếu thế (như cách nghĩ của ông Sáu) vẫn vô cùng cần thiết?',
+                        hint: 'Hãy chọn phương án kết hợp hài hòa giữa sự phát triển hiện đại và giá trị nhân văn "không ai bị bỏ lại phía sau".',
+                        options: [
+                            'Vì sự tiến bộ đích thực của xã hội không chỉ đo bằng những công trình hiện đại mà còn đo bằng lòng trắc ẩn; sự thấu cảm giúp gắn kết cộng đồng, nâng đỡ những người yếu thế không bị bỏ lại phía sau và giữ gìn vẻ đẹp nhân văn.',
+                            'Vì chúng ta nên phản đối việc xây dựng cầu đường hiện đại để quay về sử dụng hoàn toàn phà và đò ngang như ngày xưa.',
+                            'Vì những người già như ông Sáu thường bảo thủ, không chịu thay đổi nghề nghiệp nên mới ở lại bến phà.',
+                            'Chỉ cần trả lời ngắn gọn 1 câu: "Sự thấu cảm rất cần thiết vì thương người như thể thương thân."'
+                        ],
+                        correctIndex: 0,
+                        explanation: '<strong>Chuẩn Barem Câu Vận Dụng (1.5đ):</strong><br>Phương án đầu tiên lập luận chặt chẽ theo thế lưỡng phân: khẳng định sự phát triển hạ tầng là tất yếu, nhưng <em>lòng trắc ẩn và sự thấu cảm</em> chính là nhịp cầu nhân ái giúp mọi mảnh đời yếu thế đều được sẻ chia.'
+                    }
+                ]
+            },
+
+            // ---------------- HỒ SƠ #03: KÝ & TÙY BÚT ----------------
+            {
+                id: 'case-03',
+                code: 'Hồ Sơ #03',
+                genre: 'KÝ & TÙY BÚT',
+                title: 'Nhịp Điệu Dòng Sông & Cái Tôi Uyên Bác',
+                source: 'Trích Tùy bút văn hóa – lịch sử (Đặc trưng Cái tôi trữ tình & Liên tưởng)',
+                citation: '(Ngữ liệu Tùy bút giàu chất thơ theo định hướng Đọc hiểu Ký Ngữ văn 12)',
+                segments: [
+                    { id: 1, html: 'Con sông miền Trung không bao giờ chịu chảy phẳng lặng như một dải lụa ngủ quên trên đồng bằng.' },
+                    { id: 2, html: 'Khi vừa thoát khỏi những hẻm núi đá tai mèo dựng đứng của dãy Trường Sơn, <span class="clue-highlight" title="Nhân hóa & So sánh: Dòng sông mang tâm hồn như người nghệ sĩ">nó bỗng dịu lại như một người nghệ sĩ</span> vừa đi qua cơn bão lớn để ngồi xuống so dây đàn.' },
+                    { id: 3, html: 'Mỗi sớm mùa thu, sương khói bảng lảng trên mặt nước khiến <span class="clue-highlight" title="Dấu ấn cái tôi trữ tình trực tiếp">tôi cứ ngỡ mình đang lật mở</span> từng trang cổ thi nhuốm màu trầm mặc của tiền nhân.' },
+                    { id: 4, html: 'Bởi dưới đáy làn nước xanh thẫm kia không chỉ có cát vàng và rong rêu, mà còn <span class="clue-highlight" title="Liên tưởng lịch sử - văn hóa sâu sắc">lắng đọng cả bóng dáng những đoàn thuyền mở cõi, những câu hò mái nhì vang vọng suốt mấy trăm năm</span>.' },
+                    { id: 5, html: 'Phải chăng chính thiên nhiên khắc nghiệt đã chưng cất nên vẻ đẹp vừa dữ dội vừa dịu dàng của tâm hồn xứ sở này?' }
+                ],
+                lensClues: [
+                    '<strong>Dòng [2]:</strong> Biện pháp <em>Nhân hóa</em> kết hợp <em>So sánh</em> ("như một người nghệ sĩ... ngồi xuống so dây đàn") biến dòng sông vô tri thành sinh thể có tâm hồn.',
+                    '<strong>Dòng [3] & [4]:</strong> Sự kết hợp giữa <em>Yếu tố tự sự/quan sát thực tế</em> (dòng sông miền Trung) và <em>Yếu tố trữ tình/liên tưởng lịch sử – văn hóa</em> (cổ thi, đoàn thuyền mở cõi, câu hò mái nhì).',
+                    '<strong>Cái "tôi" tác giả:</strong> Tài hoa, uyên bác, giàu rung cảm thẩm mỹ trước vẻ đẹp quê hương.'
+                ],
+                steps: [
+                    {
+                        stepNumber: 1,
+                        level: 'BƯỚC 1: NHẬN BIẾT (0.75 ĐIỂM)',
+                        type: 'mcq',
+                        points: 0.75,
+                        prompt: 'Đoạn trích trên thể hiện rõ nhất sự kết hợp giữa hai yếu tố đặc trưng nào của thể loại Tùy bút?',
+                        hint: 'Trong thể loại Ký/Tùy bút, nhà văn vừa ghi chép đối tượng có thật vừa bộc lộ cảm xúc, suy tư của cái "tôi" nội cảm.',
+                        options: [
+                            'Sự kết hợp nhuần nhuyễn giữa yếu tố tự sự (ghi chép vẻ đẹp thực của dòng sông) và yếu tố trữ tình (cảm xúc, suy tư lịch sử - văn hóa của cái "tôi" tác giả).',
+                            'Sự kết hợp giữa cốt truyện giả tưởng kỳ ảo và hệ thống nhân vật thần thoại siêu nhiên.',
+                            'Sự kết hợp giữa số liệu thống kê thủy văn chính xác và các văn bản quy phạm pháp luật.',
+                            'Sự kết hợp giữa chỉ dẫn sân khấu và ngôn ngữ đối thoại kịch tính giữa các nhân vật.'
+                        ],
+                        correctIndex: 0,
+                        explanation: '<strong>Chuẩn Barem Bộ GD&ĐT (0.75đ):</strong><br>Đặc trưng cốt lõi của <em>Tùy bút</em> là sự giao thoa giữa <strong>Tự sự</strong> (tái hiện hình ảnh xác thực của thiên nhiên, con người) và <strong>Trữ tình</strong> (biểu đạt trực tiếp cảm xúc, liên tưởng văn hóa - lịch sử của cái "tôi" nhà văn).'
+                    },
+                    {
+                        stepNumber: 2,
+                        level: 'BƯỚC 2: TRUY TÌM DẤU VẾT BẰNG KÍNH LÚP (0.75 ĐIỂM)',
+                        type: 'line-select',
+                        points: 0.75,
+                        prompt: 'Dùng Kính Lúp CLICK TRỰC TIẾP vào câu văn cho thấy rõ nhất sự LIÊN TƯỞNG LỊCH SỬ - VĂN HÓA sâu sắc của tác giả khi nhìn xuống đáy làn nước xanh thẫm!',
+                        hint: 'Tìm câu văn nhắc đến bóng dáng lịch sử ("đoàn thuyền mở cõi") và trầm tích văn hóa dân gian ("câu hò mái nhì").',
+                        targetLineIds: [4],
+                        options: [
+                            { label: 'Câu [1]: "Con sông miền Trung không bao giờ chịu chảy phẳng lặng..."', lineId: 1 },
+                            { label: 'Câu [2]: "Khi vừa thoát khỏi những hẻm núi đá tai mèo dựng đứng..."', lineId: 2 },
+                            { label: 'Câu [4]: "Bởi dưới đáy làn nước xanh thẫm kia không chỉ có cát vàng và rong rêu, mà còn lắng đọng cả bóng dáng những đoàn thuyền mở cõi..."', lineId: 4 },
+                            { label: 'Câu [5]: "Phải chăng chính thiên nhiên khắc nghiệt đã chưng cất..."', lineId: 5 }
+                        ],
+                        correctIndex: 2,
+                        explanation: '<strong>Chuẩn Barem Bộ GD&ĐT (0.75đ):</strong><br>Câu <strong>[4]</strong> thể hiện rõ cái nhìn địa - văn hóa và lịch sử: từ làn nước thực tại, tác giả nhìn thấu tầng trầm tích của <em>"những đoàn thuyền mở cõi, những câu hò mái nhì vang vọng suốt mấy trăm năm"</em>.'
+                    },
+                    {
+                        stepNumber: 3,
+                        level: 'BƯỚC 3: THÔNG HIỂU (1.0 ĐIỂM)',
+                        type: 'mcq',
+                        points: 1.0,
+                        prompt: 'Nhận xét về vẻ đẹp của "cái tôi" tác giả được thể hiện qua cách miêu tả dòng sông trong đoạn trích?',
+                        hint: 'Chú ý vốn hiểu biết văn hóa - lịch sử và cách cảm nhận dòng sông như một "người nghệ sĩ", một "trang cổ thi".',
+                        options: [
+                            'Đó là một cái tôi tài hoa, uyên bác, có tâm hồn tinh tế giàu chất thơ và tình yêu tha thiết, tự hào trước chiều sâu văn hóa - lịch sử của quê hương đất nước.',
+                            'Đó là một cái tôi lạnh lùng, hoàn toàn đứng ngoài quan sát dòng sông như một nhà địa chất học thuần túy.',
+                            'Đó là một cái tôi bi quan, chán nản và muốn trốn chạy khỏi sự khắc nghiệt của thiên nhiên miền Trung.',
+                            'Đó là một cái tôi hài hước, châm biếm những thói hư tật xấu của con người nơi phố thị.'
+                        ],
+                        correctIndex: 0,
+                        explanation: '<strong>Chuẩn Barem Bộ GD&ĐT (1.0đ):</strong><br>• <strong>Tài hoa, tinh tế (0.5đ):</strong> Cảm nhận thiên nhiên bằng lăng kính nghệ thuật (âm nhạc, hội họa, thi ca).<br>• <strong>Uyên bác & giàu lòng yêu nước (0.5đ):</strong> Gắn vẻ đẹp cảnh vật với bề dày lịch sử mở cõi và tâm hồn con người xứ sở.'
+                    },
+                    {
+                        stepNumber: 4,
+                        level: 'BƯỚC 4: VẬN DỤNG VIẾT ĐOẠN NGẮN (1.5 ĐIỂM)',
+                        type: 'mcq',
+                        points: 1.5,
+                        prompt: 'Từ cái nhìn của tác giả về dòng sông mang trầm tích lịch sử, anh/chị hãy nêu suy nghĩ về trách nhiệm của người trẻ đối với các di sản thiên nhiên và văn hóa quê hương?',
+                        hint: 'Chọn cách lập luận kết hợp cả Nhận thức (hiểu giá trị lịch sử - văn hóa) và Hành động thực tiễn (bảo tồn + quảng bá sáng tạo).',
+                        options: [
+                            'Người trẻ cần nhìn di sản thiên nhiên không chỉ là cảnh đẹp mà còn là ký ức văn hóa dân tộc; từ đó có ý thức bảo vệ môi trường sinh thái, tìm hiểu lịch sử cội nguồn và lan tỏa vẻ đẹp quê hương bằng các phương thức sáng tạo hiện đại.',
+                            'Chỉ cần đi du lịch chụp ảnh check-in thật nhiều mà không cần quan tâm đến lịch sử hay bảo vệ môi trường.',
+                            'Việc giữ gìn di sản văn hóa là trách nhiệm riêng của các nhà sử học và cơ quan quản lý nhà nước, học sinh không liên quan.',
+                            'Viết một câu khẩu hiệu ngắn: "Hãy bảo vệ dòng sông quê hương xanh sạch đẹp."'
+                        ],
+                        correctIndex: 0,
+                        explanation: '<strong>Chuẩn Barem Câu Vận Dụng (1.5đ):</strong><br>Đoạn văn đạt điểm tối đa khi chỉ ra được mối quan hệ giữa <em>Thiên nhiên – Văn hóa – Con người</em>, đồng thời đề xuất hành động thiết thực của thế hệ trẻ trong việc bảo tồn và phát huy bản sắc dân tộc.'
+                    }
+                ]
+            },
+
+            // ---------------- HỒ SƠ #04: KỊCH BẢN VĂN HỌC ----------------
+            {
+                id: 'case-04',
+                code: 'Hồ Sơ #04',
+                genre: 'KỊCH HỌC',
+                title: 'Bản Thiết Kế Thật & Chiếc Mặt Nạ Hào Nhoáng',
+                source: 'Trích Kịch bản văn học hiện đại (Đặc trưng Chỉ dẫn sân khấu & Xung đột kịch)',
+                citation: '(Ngữ liệu Kịch học theo phong cách chính luận – tâm lý Lưu Quang Vũ)',
+                segments: [
+                    { id: 1, html: '<span class="clue-highlight" title="Chỉ dẫn sân khấu: Mô tả bối cảnh, thời gian, ánh sáng"><em>(Phòng làm việc tại Viện Thiết kế. Đêm khuya. Ngoài cửa sổ mưa quất mạnh. Trên bàn ngổn ngang các bản vẽ kỹ thuật.)</em></span>' },
+                    { id: 2, html: '<strong>ÔNG KHẢI</strong> <em>(gấp tập hồ sơ bìa nhung đỏ, giọng trầm xuống)</em>: – Hoàng này, ngày mai Hội đồng nghiệm thu họp rồi. Cậu chỉ cần ký xác nhận thông số độ bền đạt chuẩn là cả viện ta được bằng khen, còn cậu có quyết định bổ nhiệm trưởng phòng.' },
+                    { id: 3, html: '<strong>HOÀNG</strong> <span class="clue-highlight" title="Chỉ dẫn sân khấu khắc họa cử chỉ, thái độ quyết liệt của nhân vật"><em>(đứng bật dậy, chỉ tay vào bản vẽ chi tiết trụ cầu)</em></span>: – Nhưng thưa chú, kết cấu bê tông ở nhịp số ba đang bị rút bớt thép chịu lực! Nếu cháu đặt bút ký, cây cầu trên giấy sẽ rất đẹp, nhưng cây cầu ngoài đời sẽ sập xuống đầu dân khi lũ về!' },
+                    { id: 4, html: '<strong>ÔNG KHẢI</strong> <em>(cười nhạt, bước tới vỗ vai Hoàng)</em>: – Cậu còn trẻ quá! Ai cũng muốn làm người trung thực tuyệt đối, nhưng sống ở đời phải biết <span class="clue-highlight" title="Quan niệm sống thỏa hiệp, giả dối">uốn mình theo chiều gió</span> thì mới tồn tại được chứ!' },
+                    { id: 5, html: '<strong>HOÀNG</strong> <em>(nhìn thẳng vào mắt ông Khải, giọng đanh lại)</em>: – <span class="clue-highlight" title="Cao trào xung đột kịch: Khẳng định lẽ sống trung thực">Cây tre uốn mình trong bão để giữ gốc, chứ không phải để mục ruỗng từ bên trong!</span> Cháu thà mất chức chứ không ký vào một sự giả dối!' }
+                ],
+                lensClues: [
+                    '<strong>Dòng [1] & các cụm chữ in nghiêng trong ngoặc đơn:</strong> Là <em>Chỉ dẫn sân khấu</em> (mô tả không gian đêm mưa, hành động, cử chỉ, nét mặt, giọng điệu nhân vật).',
+                    '<strong>Xung đột kịch trung tâm:</strong> Cuộc đấu tranh gay gắt giữa <em>sự trung thực, lương tâm nghề nghiệp</em> (Hoàng) với <em>bệnh thành tích, lối sống giả dối, cơ hội</em> (ông Khải).',
+                    '<strong>Dòng [5]:</strong> Lời thoại mang tính triết lý đanh thép của Hoàng đẩy xung đột kịch lên cao trào.'
+                ],
+                steps: [
+                    {
+                        stepNumber: 1,
+                        level: 'BƯỚC 1: NHẬN BIẾT (0.75 ĐIỂM)',
+                        type: 'mcq',
+                        points: 0.75,
+                        prompt: 'Trong đoạn trích kịch trên, các phần chữ in nghiêng đặt trong dấu ngoặc đơn (ví dụ: "(đứng bật dậy, chỉ tay vào bản vẽ chi tiết trụ cầu)") được gọi là yếu tố gì của văn bản kịch?',
+                        hint: 'Đây là phần tác giả kịch bản viết để hướng dẫn đạo diễn và diễn viên về bối cảnh, cử chỉ, giọng điệu.',
+                        options: [
+                            'Chỉ dẫn sân khấu (hướng dẫn về bối cảnh không gian, thời gian, hành động, cử chỉ và giọng điệu của nhân vật).',
+                            'Lời độc thoại nội tâm của người kể chuyện ngôi thứ nhất.',
+                            'Lời bình luận ngoại đề của các nhà phê bình sân khấu.',
+                            'Lời bàng thoại (nhân vật nói riêng với khán giả trên sân khấu).'
+                        ],
+                        correctIndex: 0,
+                        explanation: '<strong>Chuẩn Barem Bộ GD&ĐT (0.75đ):</strong><br>Các dòng chữ in nghiêng trong ngoặc đơn là <strong>Chỉ dẫn sân khấu</strong>. Chúng giúp người đọc hình dung cụ thể không gian đêm mưa căng thẳng và thái độ, hành động quyết liệt của nhân vật.'
+                    },
+                    {
+                        stepNumber: 2,
+                        level: 'BƯỚC 2: TRUY TÌM DẤU VẾT BẰNG KÍNH LÚP (0.75 ĐIỂM)',
+                        type: 'line-select',
+                        points: 0.75,
+                        prompt: 'Dùng Kính Lúp CLICK TRỰC TIẾP vào lượt lời thoại đẩy XUNG ĐỘT KỊCH lên đỉnh điểm khi nhân vật Hoàng dùng hình ảnh ẩn dụ "cây tre" để bác bỏ lối sống cơ hội và khẳng định bản lĩnh trung thực!',
+                        hint: 'Tìm lượt lời thoại cuối cùng của nhân vật HOÀNG có câu nói đanh thép về cây tre trong bão.',
+                        targetLineIds: [5],
+                        options: [
+                            { label: 'Dòng [1]: Chỉ dẫn sân khấu tại phòng làm việc Viện Thiết kế', lineId: 1 },
+                            { label: 'Dòng [2]: Lời thoại dụ dỗ danh lợi của Ông Khải', lineId: 2 },
+                            { label: 'Dòng [4]: Lời thoại khuyên "uốn mình theo chiều gió" của Ông Khải', lineId: 4 },
+                            { label: 'Dòng [5]: Lời thoại của Hoàng: "Cây tre uốn mình trong bão để giữ gốc..."', lineId: 5 }
+                        ],
+                        correctIndex: 3,
+                        explanation: '<strong>Chuẩn Barem Bộ GD&ĐT (0.75đ):</strong><br>Lượt lời <strong>[5] của Hoàng</strong> là đỉnh điểm của xung đột kịch: Hoàng dùng chính hình ảnh <em>"cây tre uốn mình"</em> để phản biện sắc bén ngụy biện của ông Khải, phân định rạch ròi giữa sự linh hoạt giữ gốc rễ đạo đức với sự tha hóa, giả dối.'
+                    },
+                    {
+                        stepNumber: 3,
+                        level: 'BƯỚC 3: THÔNG HIỂU (1.0 ĐIỂM)',
+                        type: 'mcq',
+                        points: 1.0,
+                        prompt: 'Xác định bản chất của xung đột kịch giữa nhân vật Hoàng và ông Khải trong đoạn trích trên?',
+                        hint: 'Nhìn vào mục đích của hai nhân vật: một bên muốn che giấu lỗi kỹ thuật để lấy bằng khen/chức tước, một bên bảo vệ sự thật và an toàn của người dân.',
+                        options: [
+                            'Đó là xung đột gay gắt giữa lòng trung thực, trách nhiệm công dân và đạo đức nghề nghiệp (Hoàng) với thói cơ hội, bệnh thành tích và sự giả dối vô cảm (ông Khải).',
+                            'Đó là mâu thuẫn cá nhân về việc phân chia tiền lương và ngày nghỉ phép trong cơ quan.',
+                            'Đó là sự bất đồng thuần túy về sở thích thẩm mỹ màu sắc sơn cầu giữa hai thế hệ kiến trúc sư.',
+                            'Đó là xung đột giữa phương pháp tính toán thủ công truyền thống và phần mềm máy tính hiện đại.'
+                        ],
+                        correctIndex: 0,
+                        explanation: '<strong>Chuẩn Barem Bộ GD&ĐT (1.0đ):</strong><br>Xung đột kịch mang tính xã hội và đạo đức sâu sắc: cuộc đấu tranh không khoan nhượng giữa <strong>Lương tri, Sự thật, Trách nhiệm với cộng đồng</strong> và <strong>Chủ nghĩa cá nhân vị kỷ, Sự giả dối, Bệnh hình thức</strong>.'
+                    },
+                    {
+                        stepNumber: 4,
+                        level: 'BƯỚC 4: VẬN DỤNG VIẾT ĐOẠN NGẮN (1.5 ĐIỂM)',
+                        type: 'mcq',
+                        points: 1.5,
+                        prompt: 'Câu nói của Hoàng: "Cây tre uốn mình trong bão để giữ gốc, chứ không phải để mục ruỗng từ bên trong!" gợi cho anh/chị suy nghĩ gì về ranh giới giữa "sự thích nghi linh hoạt" và "sự thỏa hiệp đánh mất nguyên tắc sống"?',
+                        hint: 'Một câu trả lời 1.5đ xuất sắc cần phân biệt rõ 2 khái niệm: thích nghi (thay đổi phương pháp nhưng giữ vững đạo đức) khác hẳn thỏa hiệp tiêu cực (bán rẻ lương tâm vì lợi ích).',
+                        options: [
+                            'Thích nghi linh hoạt là biết điều chỉnh phương thức hành động trước hoàn cảnh khó khăn nhưng vẫn giữ vững cái "gốc" đạo đức và sự thật; ngược lại, thỏa hiệp với cái xấu vì danh lợi là sự "mục ruỗng" nhân cách cần kiên quyết khước từ.',
+                            'Con người cần phải luôn luôn chiều theo ý cấp trên trong mọi hoàn cảnh để nhanh được thăng chức.',
+                            'Sống ở đời không bao giờ được lắng nghe bất kỳ ai, luôn phải bảo thủ giữ ý kiến riêng trong mọi việc.',
+                            'Chỉ cần giải thích đặc điểm sinh học của cây tre Việt Nam có thân rỗng từng đốt và rễ chùm bám sâu.'
+                        ],
+                        correctIndex: 0,
+                        explanation: '<strong>Chuẩn Barem Câu Vận Dụng (1.5đ):</strong><br>Phương án đầu tiên giải mã trọn vẹn ẩn dụ triết lý của lời thoại kịch: phân biệt sắc sảo giữa <em>bản lĩnh thích ứng tích cực</em> (giữ gốc lương tâm) và <em>sự tha hóa cơ hội</em> (mục ruỗng từ bên trong).'
+                    }
+                ]
+            },
+
+            // ---------------- HỒ SƠ #05: VĂN BẢN NGHỊ LUẬN ----------------
+            {
+                id: 'case-05',
+                code: 'Hồ Sơ #05',
+                genre: 'NGHỊ LUẬN',
+                title: 'Bản Sắc Cá Nhân Trong Kỷ Nguyên Trí Tuệ Nhân Tạo',
+                source: 'Trích Văn bản Nghị luận hiện đại (Luận đề, Luận điểm & Phép liên kết)',
+                citation: '(Ngữ liệu Nghị luận xã hội hiện đại chuẩn cấu trúc Đề thi THPT 2025–2026)',
+                segments: [
+                    { id: 1, html: '<span class="clue-highlight" title="Câu nêu Luận đề trung tâm của đoạn trích">Trong kỷ nguyên mà trí tuệ nhân tạo (AI) có thể viết văn, vẽ tranh và giải toán chỉ trong vài giây, câu hỏi lớn nhất đặt ra cho con người không phải là máy móc thông minh đến đâu, mà là bản sắc độc bản của chúng ta nằm ở chỗ nào.</span>' },
+                    { id: 2, html: '<span class="clue-highlight" title="Phép nối: Từ nối tạo liên kết chặt chẽ giữa câu [2] và câu [1]">Thật vậy</span>, thuật toán có thể tổng hợp hàng tỉ dữ liệu trong quá khứ để tạo ra một văn bản hoàn hảo về mặt cú pháp, nhưng nó không bao giờ có được sự rung động thực sự trước một nhành hoa vừa nở hay nỗi xót xa trước một mảnh đời bất hạnh.' },
+                    { id: 3, html: '<span class="clue-highlight" title="Điệp cấu trúc & Liệt kê nhằm nhấn mạnh nguy cơ đánh mất tư duy">Nếu người trẻ chỉ quen sao chép những câu trả lời có sẵn, quen để thuật toán nghĩ thay, viết thay và cảm nhận thay</span>, thì nguy cơ lớn nhất không phải là máy móc thống trị con người, mà là con người tự biến mình thành những cỗ máy rập khuôn.' },
+                    { id: 4, html: 'Bởi thế, làm chủ công nghệ đòi hỏi chúng ta phải không ngừng mài sắc tư duy phản biện, nuôi dưỡng trải nghiệm sống chân thực và giữ gìn ngọn lửa sáng tạo mang dấu ấn cá nhân.' }
+                ],
+                lensClues: [
+                    '<strong>Câu [1]:</strong> Nêu trực tiếp <em>Luận đề trung tâm</em>: Định vị bản sắc độc bản của con người trong thời đại Trí tuệ nhân tạo (AI).',
+                    '<strong>Đầu câu [2] & [4]:</strong> Sử dụng <em>Phép nối</em> ("Thật vậy", "Bởi thế") và <em>Phép lặp từ ngữ</em> ("con người", "thuật toán", "máy móc") để kết nối mạch lập luận.',
+                    '<strong>Câu [3]:</strong> Sử dụng cấu trúc câu giả định <em>"Nếu... thì..."</em> kết hợp <em>Liệt kê / Điệp ngữ</em> ("nghĩ thay, viết thay và cảm nhận thay") để cảnh báo sự lười biếng tư duy.'
+                ],
+                steps: [
+                    {
+                        stepNumber: 1,
+                        level: 'BƯỚC 1: NHẬN BIẾT (0.75 ĐIỂM)',
+                        type: 'mcq',
+                        points: 0.75,
+                        prompt: 'Xác định luận đề (vấn đề nghị luận chính) và phép liên kết hình thức nổi bật nối câu [2] với câu [1] trong đoạn trích?',
+                        hint: 'Đọc câu [1] để tìm vấn đề cốt lõi và nhìn cụm từ mở đầu câu [2] ("Thật vậy...").',
+                        options: [
+                            'Luận đề: Giữ gìn bản sắc và tư duy độc lập của con người trong kỷ nguyên AI; sử dụng phép nối ("Thật vậy") kết hợp phép lặp từ ngữ.',
+                            'Luận đề: Hướng dẫn kỹ thuật lập trình phần mềm máy tính; sử dụng phép vần điệu thơ ca.',
+                            'Luận đề: Kêu gọi cấm sử dụng hoàn toàn máy tính và điện thoại thông minh trong trường học.',
+                            'Luận đề: Miêu tả vẻ đẹp của các loài hoa mùa xuân; không sử dụng bất kỳ phép liên kết nào.'
+                        ],
+                        correctIndex: 0,
+                        explanation: '<strong>Chuẩn Barem Bộ GD&ĐT (0.75đ):</strong><br>• <strong>Luận đề:</strong> Bản sắc cá nhân và tư duy độc lập của con người trước sự phát triển của AI.<br>• <strong>Phép liên kết:</strong> <em>Phép nối</em> (quan hệ từ/tổ hợp từ chuyển tiếp <em>"Thật vậy"</em> ở đầu câu [2]) và <em>Phép lặp</em>.'
+                    },
+                    {
+                        stepNumber: 2,
+                        level: 'BƯỚC 2: TRUY TÌM DẤU VẾT BẰNG KÍNH LÚP (0.75 ĐIỂM)',
+                        type: 'line-select',
+                        points: 0.75,
+                        prompt: 'Dùng Kính Lúp CLICK TRỰC TIẾP vào câu văn sử dụng phép LIỆT KÊ kết hợp ĐIỆP TỪ "thay" ("nghĩ thay, viết thay và cảm nhận thay") để cảnh báo nguy cơ con người tự biến mình thành cỗ máy rập khuôn!',
+                        hint: 'Tìm câu văn có cấu trúc điều kiện - hệ quả "Nếu người trẻ chỉ quen sao chép... thì nguy cơ lớn nhất...".',
+                        targetLineIds: [3],
+                        options: [
+                            { label: 'Câu [1]: "Trong kỷ nguyên mà trí tuệ nhân tạo (AI) có thể viết văn..."', lineId: 1 },
+                            { label: 'Câu [2]: "Thật vậy, thuật toán có thể tổng hợp hàng tỉ dữ liệu..."', lineId: 2 },
+                            { label: 'Câu [3]: "Nếu người trẻ chỉ quen sao chép những câu trả lời có sẵn, quen để thuật toán nghĩ thay, viết thay và cảm nhận thay..."', lineId: 3 },
+                            { label: 'Câu [4]: "Bởi thế, làm chủ công nghệ đòi hỏi chúng ta..."', lineId: 4 }
+                        ],
+                        correctIndex: 2,
+                        explanation: '<strong>Chuẩn Barem Bộ GD&ĐT (0.75đ):</strong><br>Câu <strong>[3]</strong> sử dụng phép liệt kê tăng tiến đi kèm điệp từ <em>"thay"</em> (<em>nghĩ thay, viết thay, cảm nhận thay</em>) kết hợp nghệ thuật tương phản để gióng lên hồi chuông cảnh tỉnh về sự phụ thuộc mù quáng vào công nghệ.'
+                    },
+                    {
+                        stepNumber: 3,
+                        level: 'BƯỚC 3: THÔNG HIỂU (1.0 ĐIỂM)',
+                        type: 'mcq',
+                        points: 1.0,
+                        prompt: 'Theo mạch lập luận ở câu [2], tác giả đã chỉ ra sự khác biệt cốt lõi nào giữa "thuật toán AI" và "con người"?',
+                        hint: 'Hãy đối chiếu hai vế trong câu [2]: AI mạnh về tổng hợp dữ liệu/cú pháp, còn con người có điều gì mà máy móc không thể có?',
+                        options: [
+                            'Thuật toán AI xử lý dữ liệu và cú pháp dựa trên thông tin có sẵn, còn con người có trải nghiệm cảm xúc chân thực, biết rung động trước cái đẹp và biết xót thương, đồng cảm với đồng loại.',
+                            'Thuật toán AI tính toán chậm hơn con người nhưng lại biết buồn vui và khóc cười như sinh vật sống.',
+                            'Giữa thuật toán AI và tâm hồn con người hoàn toàn giống hệt nhau, không có bất kỳ ranh giới nào.',
+                            'Con người chỉ giỏi về lắp ráp linh kiện phần cứng, còn mọi hoạt động nghệ thuật đều do máy móc độc quyền.'
+                        ],
+                        correctIndex: 0,
+                        explanation: '<strong>Chuẩn Barem Bộ GD&ĐT (1.0đ):</strong><br>Tác giả sử dụng thao tác lập luận đối lập để làm rõ: AI chỉ tổng hợp dữ liệu quá khứ, còn giá trị độc bản của con người nằm ở <strong>trải nghiệm sống trực tiếp, rung cảm thẩm mỹ và lòng trắc ẩn nhân văn</strong>.'
+                    },
+                    {
+                        stepNumber: 4,
+                        level: 'BƯỚC 4: VẬN DỤNG VIẾT ĐOẠN NGẮN (1.5 ĐIỂM)',
+                        type: 'mcq',
+                        points: 1.5,
+                        prompt: 'Anh/chị có đồng tình với nhận định: "Nguy cơ lớn nhất không phải là máy móc thống trị con người, mà là con người tự biến mình thành những cỗ máy rập khuôn"? Hãy chọn cách trình bày thuyết phục nhất!',
+                        hint: 'Đoạn trả lời 1.5đ cần: Khẳng định rõ quan điểm (Đồng tình) -> Lý giải sâu sắc vì sao sự lệ thuộc làm thui chột tư duy -> Đề xuất cách sử dụng AI thông minh.',
+                        options: [
+                            'Bày tỏ sự đồng tình; lý giải rằng khi ỷ lại hoàn toàn vào công nghệ, con người sẽ đánh mất khả năng tư duy phản biện, cảm xúc cá nhân và cá tính sáng tạo; từ đó khẳng định cần xem AI là công cụ hỗ trợ chứ không thay thế trí tuệ và tâm hồn mình.',
+                            'Chỉ ghi vỏn vẹn hai chữ "Đồng tình" rồi bỏ trống không giải thích gì thêm.',
+                            'Bác bỏ hoàn toàn và khuyên học sinh nên copy nguyên văn bài làm của AI trong mọi kỳ thi để tiết kiệm thời gian.',
+                            'Liệt kê lịch sử ra đời của các hãng máy tính trên thế giới từ năm 1950 đến nay.'
+                        ],
+                        correctIndex: 0,
+                        explanation: '<strong>Chuẩn Barem Câu Vận Dụng (1.5đ):</strong><br>• <strong>Nêu rõ quan điểm (0.25đ):</strong> Đồng tình.<br>• <strong>Lý giải chặt chẽ, sâu sắc (1.0đ):</strong> Chỉ ra hậu quả của sự lười biếng tư duy khiến con người đánh mất bản sắc độc bản.<br>• <strong>Bài học hành động (0.25đ):</strong> Làm chủ công nghệ bằng tư duy độc lập và trái tim giàu cảm xúc.'
+                    }
+                ]
+            }
+        ];
+
+        // ================= 3. QUẢN LÝ TRẠNG THÁI GAME (STATE) =================
+        let casesData = [...defaultCases];
+        let currentCaseIndex = 0;
+        let currentStepIndex = 0;
+        let lensEnabled = false;
+        let streakCount = 0;
+
+        // Lưu trữ kết quả từng chuyên án: { caseId: { stepScores: [null, null, null, null], stepAnswered: [false, false, false, false], used5050: [false...] } }
+        let progressState = {};
+
+        function initProgressState() {
+            // Tải thêm các hồ sơ tự tạo nếu có trong localStorage
+            try {
+                const savedCustom = localStorage.getItem('tham_tu_ngu_lieu_custom_cases');
+                if (savedCustom) {
+                    const parsed = JSON.parse(savedCustom);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        casesData = [...defaultCases, ...parsed];
+                    }
+                }
+            } catch (e) {
+                console.warn('LocalStorage error:', e);
+            }
+
+            casesData.forEach(c => {
+                if (!progressState[c.id]) {
+                    progressState[c.id] = {
+                        stepScores: [0, 0, 0, 0],
+                        stepAnswered: [false, false, false, false],
+                        selectedAnswer: [null, null, null, null],
+                        used5050: [false, false, false, false]
+                    };
+                }
+            });
+        }
+
+        // ================= 4. HÀM RENDER GIAO DIỆN CHÍNH =================
+        function renderCaseTabs() {
+            const container = document.getElementById('case-tabs-container');
+            container.innerHTML = '';
+
+            casesData.forEach((c, idx) => {
+                const cState = progressState[c.id];
+                const isSolved = cState.stepAnswered.every(Boolean);
+                const totalScore = cState.stepScores.reduce((a, b) => a + b, 0);
+                const isActive = idx === currentCaseIndex;
+
+                const btn = document.createElement('button');
+                btn.onclick = () => selectCase(idx);
+                btn.className = `px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-2 shrink-0 border ${
+                    isActive
+                        ? 'bg-amber-500 text-stone-950 border-amber-300 shadow-md shadow-amber-500/20'
+                        : 'bg-academia-800/90 hover:bg-academia-700 text-stone-300 border-stone-700'
+                }`;
+
+                btn.innerHTML = `
+                    <i class="fa-solid ${isSolved ? 'fa-circle-check text-emerald-600' : 'fa-folder-open'}"></i>
+                    <span>${c.code}: ${c.genre}</span>
+                    ${isSolved ? `<span class="px-1.5 py-0.2 rounded text-[11px] ${isActive ? 'bg-stone-950 text-amber-300' : 'bg-emerald-950 text-emerald-300'}">${totalScore.toFixed(2)}đ</span>` : ''}
+                `;
+                container.appendChild(btn);
+            });
+
+            document.getElementById('total-cases-count').textContent = casesData.length;
+        }
+
+        function renderHeaderStats() {
+            const currentCase = casesData[currentCaseIndex];
+            const cState = progressState[currentCase.id];
+            const caseScore = cState.stepScores.reduce((a, b) => a + b, 0);
+            document.getElementById('current-case-score').textContent = caseScore.toFixed(2);
+
+            // Đếm số chuyên án đã hoàn thành cả 4 bước
+            let solvedCount = 0;
+            let totalEarnedPoints = 0;
+            casesData.forEach(c => {
+                const st = progressState[c.id];
+                if (st.stepAnswered.every(Boolean)) solvedCount++;
+                totalEarnedPoints += st.stepScores.reduce((a, b) => a + b, 0);
+            });
+
+            document.getElementById('solved-cases-count').textContent = solvedCount;
+            document.getElementById('streak-counter').textContent = streakCount;
+
+            // Cập nhật Cấp bậc Thám tử
+            const rankBadge = document.getElementById('rank-badge');
+            if (totalEarnedPoints >= 16) {
+                rankBadge.textContent = '👑 Thủ Khoa Đọc Hiểu';
+                rankBadge.className = 'text-xs font-bold text-amber-950 bg-amber-400 border border-amber-200 px-2.5 py-0.5 rounded-full shadow';
+            } else if (totalEarnedPoints >= 10) {
+                rankBadge.textContent = '🕵️‍♂️ Thám Tử Văn Chương';
+                rankBadge.className = 'text-xs font-semibold text-amber-300 bg-amber-950/90 border border-amber-400/40 px-2 py-0.5 rounded-full';
+            } else if (totalEarnedPoints >= 4) {
+                rankBadge.textContent = '🔎 Điều Tra Viên Ngữ Liệu';
+                rankBadge.className = 'text-xs font-semibold text-sky-300 bg-sky-950/90 border border-sky-400/40 px-2 py-0.5 rounded-full';
+            } else {
+                rankBadge.textContent = '🕵️ Thám Tử Tập Sự';
+                rankBadge.className = 'text-xs font-semibold text-emerald-300 bg-emerald-950/80 border border-emerald-500/30 px-2 py-0.5 rounded-full';
+            }
+        }
+
+        function renderPassage() {
+            const currentCase = casesData[currentCaseIndex];
+            const cState = progressState[currentCase.id];
+            const currentStep = currentCase.steps[currentStepIndex];
+
+            document.getElementById('case-genre-tag').textContent = currentCase.genre;
+            document.getElementById('case-title').textContent = `${currentCase.code}: ${currentCase.title}`;
+            document.getElementById('case-source').textContent = currentCase.source;
+            document.getElementById('passage-citation').textContent = currentCase.citation;
+
+            // Con dấu trạng thái
+            const stamp = document.getElementById('case-status-stamp');
+            const isAllSolved = cState.stepAnswered.every(Boolean);
+            const caseScore = cState.stepScores.reduce((a, b) => a + b, 0);
+            if (isAllSolved) {
+                stamp.textContent = `ĐÃ PHÁ ÁN • ${caseScore.toFixed(2)}/4.0Đ`;
+                stamp.className = 'stamp-badge text-xs sm:text-sm shrink-0 !border-emerald-700 !text-emerald-800 !bg-emerald-100';
+            } else {
+                stamp.textContent = 'ĐANG ĐIỀU TRA';
+                stamp.className = 'stamp-badge text-xs sm:text-sm shrink-0';
+            }
+
+            // Hiển thị thông báo khi ở Bước 2 (Kính Lúp tương tác)
+            const banner = document.getElementById('interactive-instruction-banner');
+            const parchmentContainer = document.getElementById('parchment-container');
+            const isInteractiveStep = currentStep.type === 'line-select' && !cState.stepAnswered[currentStepIndex];
+
+            if (isInteractiveStep) {
+                banner.classList.remove('hidden');
+                parchmentContainer.classList.add('inspect-mode-active');
+            } else {
+                banner.classList.add('hidden');
+                parchmentContainer.classList.remove('inspect-mode-active');
+            }
+
+            // Render từng dòng/câu ngữ liệu
+            const passageContent = document.getElementById('passage-content');
+            passageContent.innerHTML = '';
+
+            currentCase.segments.forEach(seg => {
+                const segDiv = document.createElement('div');
+                segDiv.id = `segment-line-${seg.id}`;
+                segDiv.className = 'passage-segment flex items-baseline gap-2.5';
+
+                // Nếu đã trả lời câu hỏi chọn dòng ở Bước 2, đánh dấu dòng đúng/sai
+                if (currentStep.type === 'line-select' && cState.stepAnswered[currentStepIndex]) {
+                    const chosenLineId = cState.selectedAnswer[currentStepIndex];
+                    if (currentStep.targetLineIds.includes(seg.id)) {
+                        segDiv.classList.add('segment-selected-correct');
+                    } else if (chosenLineId === seg.id) {
+                        segDiv.classList.add('segment-selected-wrong');
+                    }
+                }
+
+                segDiv.onclick = () => handlePassageLineClick(seg.id);
+
+                segDiv.innerHTML = `
+                    <span class="font-sans text-xs font-bold text-amber-800/75 bg-amber-900/10 px-1.5 py-0.5 rounded shrink-0 select-none">
+                        [${seg.id}]
+                    </span>
+                    <div class="flex-1">${seg.html}</div>
+                `;
+                passageContent.appendChild(segDiv);
+            });
+
+            // Cập nhật danh sách giải mã Kính Lúp
+            const clueList = document.getElementById('lens-clue-list');
+            clueList.innerHTML = currentCase.lensClues.map(clue => `<li>${clue}</li>`).join('');
+        }
+
+        function renderStepProgress() {
+            const currentCase = casesData[currentCaseIndex];
+            const cState = progressState[currentCase.id];
+            const bar = document.getElementById('step-progress-bar');
+            bar.innerHTML = '';
+
+            const stepShortNames = ['1. Nhận biết', '2. Kính lúp', '3. Thông hiểu', '4. Vận dụng'];
+
+            currentCase.steps.forEach((st, idx) => {
+                const isAnswered = cState.stepAnswered[idx];
+                const earned = cState.stepScores[idx];
+                const isCurrent = idx === currentStepIndex;
+
+                const btn = document.createElement('button');
+                btn.onclick = () => {
+                    playTone('click');
+                    currentStepIndex = idx;
+                    renderAll();
+                };
+
+                let statusColor = 'bg-academia-900 border-stone-700 text-stone-400';
+                if (isCurrent) {
+                    statusColor = 'bg-amber-500/20 border-amber-400 text-amber-200 ring-2 ring-amber-400/30';
+                } else if (isAnswered && earned > 0) {
+                    statusColor = 'bg-emerald-950/80 border-emerald-500/50 text-emerald-300';
+                } else if (isAnswered && earned === 0) {
+                    statusColor = 'bg-rose-950/80 border-rose-500/50 text-rose-300';
+                }
+
+                btn.className = `p-2 rounded-xl border text-left transition flex flex-col justify-between ${statusColor}`;
+                btn.innerHTML = `
+                    <div class="flex items-center justify-between text-[11px] font-bold">
+                        <span>${stepShortNames[idx]}</span>
+                        ${isAnswered ? (earned > 0 ? '<i class="fa-solid fa-check text-emerald-400"></i>' : '<i class="fa-solid fa-xmark text-rose-400"></i>') : ''}
+                    </div>
+                    <div class="text-[11px] opacity-80 mt-0.5">
+                        ${isAnswered ? `${earned.toFixed(2)}/${st.points.toFixed(2)}đ` : `${st.points.toFixed(2)}đ`}
+                    </div>
+                `;
+                bar.appendChild(btn);
+            });
+
+            const currentStep = currentCase.steps[currentStepIndex];
+            document.getElementById('step-level-indicator').textContent = `Bước ${currentStepIndex + 1}/4 • ${currentStep.points.toFixed(2)}đ`;
+        }
+
+        function renderQuestionPanel() {
+            const currentCase = casesData[currentCaseIndex];
+            const cState = progressState[currentCase.id];
+            const currentStep = currentCase.steps[currentStepIndex];
+            const isAnswered = cState.stepAnswered[currentStepIndex];
+
+            document.getElementById('question-step-badge').textContent = `C${currentStep.stepNumber}`;
+            document.getElementById('question-cognitive-level').textContent = currentStep.level;
+            document.getElementById('question-points').textContent = currentStep.points.toFixed(2);
+            document.getElementById('question-prompt').textContent = currentStep.prompt;
+
+            if (currentStep.type === 'line-select') {
+                document.getElementById('question-type-desc').innerHTML = '<i class="fa-solid fa-magnifying-glass text-amber-400 mr-1"></i> Click trực tiếp vào dòng ngữ liệu bên trái hoặc chọn bên dưới';
+            } else {
+                document.getElementById('question-type-desc').textContent = 'Chọn phương án trả lời chuẩn Barem chấm thi nhất';
+            }
+
+            // Ẩn hộp gợi ý khi sang câu mới
+            document.getElementById('question-hint-box').classList.add('hidden');
+            document.getElementById('question-hint-text').textContent = currentStep.hint;
+
+            // Trạng thái nút 50/50
+            const btn5050 = document.getElementById('lifeline-5050-btn');
+            btn5050.disabled = isAnswered || cState.used5050[currentStepIndex];
+
+            // Render các phương án
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            const letters = ['A', 'B', 'C', 'D'];
+            currentStep.options.forEach((opt, idx) => {
+                const isObjOption = typeof opt === 'object';
+                const optionText = isObjOption ? opt.label : opt;
+                const optionValue = isObjOption ? opt.lineId : idx;
+
+                const btn = document.createElement('button');
+                btn.id = `option-btn-${idx}`;
+                btn.disabled = isAnswered;
+
+                let btnStyle = 'bg-academia-900/90 hover:bg-academia-700 border-stone-700 text-stone-200';
+                let badgeStyle = 'bg-stone-800 text-amber-400 border border-stone-600';
+
+                if (isAnswered) {
+                    const isCorrectOption = idx === currentStep.correctIndex;
+                    const isUserSelected = isObjOption
+                        ? cState.selectedAnswer[currentStepIndex] === opt.lineId
+                        : cState.selectedAnswer[currentStepIndex] === idx;
+
+                    if (isCorrectOption) {
+                        btnStyle = 'bg-emerald-950/90 border-emerald-500 text-emerald-100 ring-2 ring-emerald-500/30';
+                        badgeStyle = 'bg-emerald-500 text-stone-950 font-extrabold';
+                    } else if (isUserSelected && !isCorrectOption) {
+                        btnStyle = 'bg-rose-950/90 border-rose-500 text-rose-100';
+                        badgeStyle = 'bg-rose-500 text-white font-extrabold';
+                    } else {
+                        btnStyle = 'bg-academia-900/40 border-stone-800 text-stone-500 opacity-60';
+                    }
+                }
+
+                btn.className = `w-full text-left p-3.5 rounded-xl border transition flex items-start gap-3 ${btnStyle}`;
+                btn.onclick = () => {
+                    if (isObjOption) {
+                        handlePassageLineClick(opt.lineId);
+                    } else {
+                        handleAnswerMCQ(idx);
+                    }
+                };
+
+                btn.innerHTML = `
+                    <span class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 ${badgeStyle}">
+                        ${letters[idx]}
+                    </span>
+                    <span class="text-xs sm:text-sm leading-relaxed flex-1">${optionText}</span>
+                `;
+                optionsContainer.appendChild(btn);
+            });
+
+            // Nếu đã dùng 50/50 ở bước này nhưng chưa trả lời, làm mờ 2 đáp án sai
+            if (cState.used5050[currentStepIndex] && !isAnswered) {
+                apply5050Visuals();
+            }
+
+            // Hiển thị Feedback Box nếu đã trả lời
+            const feedbackBox = document.getElementById('feedback-box');
+            if (isAnswered) {
+                const earned = cState.stepScores[currentStepIndex];
+                const isCorrect = earned > 0;
+                feedbackBox.classList.remove('hidden');
+
+                if (isCorrect) {
+                    feedbackBox.className = 'rounded-xl p-4 border bg-emerald-950/60 border-emerald-500/50';
+                    document.getElementById('feedback-title').innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400"></i> <span class="text-emerald-300">SUY LUẬN CHÍNH XÁC! CHUẨN BAREM!</span>';
+                    document.getElementById('feedback-score-pill').textContent = `+${earned.toFixed(2)}đ`;
+                    document.getElementById('feedback-score-pill').className = 'text-xs font-bold px-2.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
+                } else {
+                    feedbackBox.className = 'rounded-xl p-4 border bg-rose-950/60 border-rose-500/50';
+                    document.getElementById('feedback-title').innerHTML = '<i class="fa-solid fa-triangle-exclamation text-rose-400"></i> <span class="text-rose-300">CHƯA CHÍNH XÁC! HÃY XEM KỸ BAREM</span>';
+                    document.getElementById('feedback-score-pill').textContent = '+0.00đ';
+                    document.getElementById('feedback-score-pill').className = 'text-xs font-bold px-2.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/40';
+                }
+
+                document.getElementById('feedback-explanation').innerHTML = currentStep.explanation;
+
+                const nextBtnText = document.getElementById('next-step-btn-text');
+                if (currentStepIndex < 3) {
+                    nextBtnText.textContent = `Tiếp Tục Điều Tra Bước ${currentStepIndex + 2}`;
+                } else {
+                    nextBtnText.textContent = 'Tổng Kết Hồ Sơ Chuyên Án';
+                }
+            } else {
+                feedbackBox.classList.add('hidden');
+            }
+        }
+
+        function renderAll() {
+            renderCaseTabs();
+            renderHeaderStats();
+            renderPassage();
+            renderStepProgress();
+            renderQuestionPanel();
+        }
+
+        // ================= 5. XỬ LÝ TƯƠNG TÁC NGƯỜI CHƠI =================
+        function selectCase(index) {
+            playTone('click');
+            currentCaseIndex = index;
+            currentStepIndex = 0;
+            renderAll();
+        }
+
+        // Xử lý khi người chơi click vào một dòng văn bản (Bước 2 - Kính Lúp)
+        function handlePassageLineClick(lineId) {
+            const currentCase = casesData[currentCaseIndex];
+            const cState = progressState[currentCase.id];
+            const currentStep = currentCase.steps[currentStepIndex];
+
+            // Nếu đang ở câu hỏi chọn dòng và chưa trả lời
+            if (currentStep.type === 'line-select' && !cState.stepAnswered[currentStepIndex]) {
+                const isCorrect = currentStep.targetLineIds.includes(lineId);
+                cState.stepAnswered[currentStepIndex] = true;
+                cState.selectedAnswer[currentStepIndex] = lineId;
+
+                if (isCorrect) {
+                    cState.stepScores[currentStepIndex] = currentStep.points;
+                    streakCount++;
+                    playTone('correct');
+                } else {
+                    cState.stepScores[currentStepIndex] = 0;
+                    streakCount = 0;
+                    playTone('wrong');
+                }
+
+                renderAll();
+            } else {
+                // Nếu ở các bước khác, click vào dòng sẽ nhấp nháy nhẹ để dễ đọc
+                playTone('click');
+                const segEl = document.getElementById(`segment-line-${lineId}`);
+                if (segEl) {
+                    segEl.classList.add('bg-amber-500/25');
+                    setTimeout(() => segEl.classList.remove('bg-amber-500/25'), 450);
+                }
+            }
+        }
+
+        // Xử lý khi người chơi chọn đáp án trắc nghiệm (Bước 1, 3, 4)
+        function handleAnswerMCQ(optionIndex) {
+            const currentCase = casesData[currentCaseIndex];
+            const cState = progressState[currentCase.id];
+            const currentStep = currentCase.steps[currentStepIndex];
+
+            if (cState.stepAnswered[currentStepIndex]) return;
+
+            const isCorrect = optionIndex === currentStep.correctIndex;
+            cState.stepAnswered[currentStepIndex] = true;
+            cState.selectedAnswer[currentStepIndex] = optionIndex;
+
+            if (isCorrect) {
+                cState.stepScores[currentStepIndex] = currentStep.points;
+                streakCount++;
+                playTone('correct');
+            } else {
+                cState.stepScores[currentStepIndex] = 0;
+                streakCount = 0;
+                playTone('wrong');
+            }
+
+            renderAll();
+        }
+
+        function goToNextStep() {
+            playTone('click');
+            if (currentStepIndex < 3) {
+                currentStepIndex++;
+                renderAll();
+            } else {
+                showCaseSummaryModal();
+            }
+        }
+
+        // ================= 6. CÔNG CỤ THÁM TỬ (KÍNH LÚP, 50/50, GỢI Ý) =================
+        function toggleDetectiveLens() {
+            lensEnabled = !lensEnabled;
+            playTone('lens');
+
+            const parchment = document.getElementById('parchment-container');
+            const drawer = document.getElementById('lens-clue-drawer');
+            const btnText = document.getElementById('lens-btn-text');
+            const toggleBtn = document.getElementById('toggle-lens-btn');
+
+            if (lensEnabled) {
+                parchment.classList.add('lens-enabled');
+                drawer.classList.remove('hidden');
+                btnText.textContent = 'Đang Bật Kính Lúp (Đã Giải Mã)';
+                toggleBtn.className = 'px-3.5 py-2 rounded-xl bg-amber-300 text-stone-950 font-extrabold text-xs sm:text-sm shadow-lg ring-2 ring-amber-400 transition flex items-center gap-2';
+            } else {
+                parchment.classList.remove('lens-enabled');
+                drawer.classList.add('hidden');
+                btnText.textContent = 'Bật Kính Lúp Soi Dấu Hiệu';
+                toggleBtn.className = 'px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-bold text-xs sm:text-sm shadow-md transition flex items-center gap-2';
+            }
+        }
+
+        // Hiệu ứng di chuyển vòng sáng kính lúp trên tờ giấy ngữ liệu
+        document.addEventListener('DOMContentLoaded', () => {
+            const parchment = document.getElementById('parchment-container');
+            const spotlight = document.getElementById('lens-spotlight');
+
+            parchment.addEventListener('mousemove', (e) => {
+                if (!lensEnabled) return;
+                const rect = parchment.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                spotlight.style.left = `${x}px`;
+                spotlight.style.top = `${y}px`;
+            });
+        });
+
+        function useLifeline5050() {
+            const currentCase = casesData[currentCaseIndex];
+            const cState = progressState[currentCase.id];
+            if (cState.stepAnswered[currentStepIndex] || cState.used5050[currentStepIndex]) return;
+
+            playTone('lens');
+            cState.used5050[currentStepIndex] = true;
+            document.getElementById('lifeline-5050-btn').disabled = true;
+            apply5050Visuals();
+        }
+
+        function apply5050Visuals() {
+            const currentCase = casesData[currentCaseIndex];
+            const currentStep = currentCase.steps[currentStepIndex];
+
+            // Tìm các vị trí sai và loại đi 2 phương án
+            const wrongIndices = [0, 1, 2, 3].filter(i => i !== currentStep.correctIndex);
+            const toRemove = wrongIndices.slice(0, 2);
+
+            toRemove.forEach(idx => {
+                const btn = document.getElementById(`option-btn-${idx}`);
+                if (btn) {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-30', 'line-through', 'pointer-events-none');
+                }
+                // Nếu là câu chọn dòng ngữ liệu, làm mờ luôn dòng tương ứng bên trái
+                if (currentStep.type === 'line-select' && currentStep.options[idx]) {
+                    const lineId = currentStep.options[idx].lineId;
+                    const segEl = document.getElementById(`segment-line-${lineId}`);
+                    if (segEl) segEl.classList.add('segment-dimmed');
+                }
+            });
+        }
+
+        function useLifelineHint() {
+            playTone('click');
+            const hintBox = document.getElementById('question-hint-box');
+            hintBox.classList.toggle('hidden');
+        }
+
+        // ================= 7. MODAL & TỔNG KẾT CHUYÊN ÁN =================
+        function openModal(id) {
+            playTone('click');
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            playTone('click');
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function showCaseSummaryModal() {
+            const currentCase = casesData[currentCaseIndex];
+            const cState = progressState[currentCase.id];
+            const score4 = cState.stepScores.reduce((a, b) => a + b, 0);
+            const score10 = (score4 / 4.0) * 10;
+
+            document.getElementById('summary-case-title').textContent = `${currentCase.code}: ${currentCase.title}`;
+            document.getElementById('summary-score-4').textContent = `${score4.toFixed(2)} / 4.00đ`;
+            document.getElementById('summary-score-10').textContent = `${score10.toFixed(1)} / 10`;
+
+            let comment = '';
+            if (score4 >= 3.75) {
+                comment = 'Xuất sắc! Bạn nắm cực chắc đặc trưng thể loại và công thức trả lời chuẩn Barem Bộ GD&ĐT. Phần Đọc hiểu 4.0 điểm trong kỳ thi THPT chắc chắn nằm gọn trong tầm tay bạn!';
+            } else if (score4 >= 2.5) {
+                comment = 'Khá tốt! Bạn đã phát hiện được các dấu hiệu chính của văn bản. Hãy đọc kỹ lại phần giải thích Barem để không bị mất điểm đáng tiếc ở câu Thông hiểu và Vận dụng nhé.';
+            } else {
+                comment = 'Bạn hãy mở "Sổ Tay Bí Kíp" ở góc trên để ôn lại công thức nhận diện thể loại và bấm "Điều Tra Lại" để chinh phục trọn vẹn 4.0 điểm nhé!';
+            }
+            document.getElementById('summary-comment').textContent = comment;
+
+            openModal('case-summary-modal');
+        }
+
+        function replayCurrentCase() {
+            const currentCase = casesData[currentCaseIndex];
+            progressState[currentCase.id] = {
+                stepScores: [0, 0, 0, 0],
+                stepAnswered: [false, false, false, false],
+                selectedAnswer: [null, null, null, null],
+                used5050: [false, false, false, false]
+            };
+            currentStepIndex = 0;
+            closeModal('case-summary-modal');
+            renderAll();
+        }
+
+        function goToNextCase() {
+            closeModal('case-summary-modal');
+            currentCaseIndex = (currentCaseIndex + 1) % casesData.length;
+            currentStepIndex = 0;
+            renderAll();
+        }
+
+        // ================= 8. TỰ TẠO HỒ SƠ NGỮ LIỆU MỚI =================
+        function handleCreateCustomCase(e) {
+            e.preventDefault();
+            const title = document.getElementById('custom-title').value.trim();
+            const genre = document.getElementById('custom-genre').value;
+            const source = document.getElementById('custom-source').value.trim();
+            const rawLines = document.getElementById('custom-lines').value
+                .split('\n')
+                .map(l => l.trim())
+                .filter(Boolean);
+
+            if (rawLines.length < 2) {
+                rawLines.push('Dòng ngữ liệu bổ sung để phục vụ điều tra đọc hiểu.');
+            }
+
+            const q1Prompt = document.getElementById('custom-q1').value.trim();
+            const q1Correct = document.getElementById('custom-q1-correct').value.trim();
+            const q2Prompt = document.getElementById('custom-q2').value.trim();
+            let q2Line = parseInt(document.getElementById('custom-q2-line').value, 10) || 1;
+            if (q2Line < 1) q2Line = 1;
+            if (q2Line > rawLines.length) q2Line = rawLines.length;
+
+            const newId = 'custom-' + Date.now();
+            const caseNumber = casesData.length + 1;
+
+            const segments = rawLines.map((line, idx) => ({
+                id: idx + 1,
+                html: idx + 1 === q2Line ? `<span class="clue-highlight" title="Dấu hiệu trọng tâm do bạn đánh dấu">${line}</span>` : line
+            }));
+
+            // Tạo danh sách lựa chọn dòng cho Bước 2
+            const lineOptions = segments.slice(0, 4).map(s => ({
+                label: `Dòng [${s.id}]: "${rawLines[s.id - 1].slice(0, 55)}..."`,
+                lineId: s.id
+            }));
+            // Đảm bảo dòng đúng nằm trong 4 lựa chọn
+            if (!lineOptions.some(o => o.lineId === q2Line)) {
+                lineOptions[0] = {
+                    label: `Dòng [${q2Line}]: "${rawLines[q2Line - 1].slice(0, 55)}..."`,
+                    lineId: q2Line
+                };
+            }
+            const q2CorrectIdx = lineOptions.findIndex(o => o.lineId === q2Line);
+
+            const newCase = {
+                id: newId,
+                code: `Hồ Sơ #0${caseNumber}`,
+                genre: genre,
+                title: title,
+                source: source,
+                citation: `(${source} – Hồ sơ tự tạo ôn thi THPT)`,
+                segments: segments,
+                lensClues: [
+                    `<strong>Thể loại:</strong> ${genre} – Hãy chú ý các dấu hiệu hình thức và từ khóa nổi bật.`,
+                    `<strong>Dòng [${q2Line}]:</strong> Chứa bằng chứng ngôn từ trọng tâm cần phân tích.`
+                ],
+                steps: [
+                    {
+                        stepNumber: 1,
+                        level: 'BƯỚC 1: NHẬN BIẾT (0.75 ĐIỂM)',
+                        type: 'mcq',
+                        points: 0.75,
+                        prompt: q1Prompt,
+                        hint: 'Dựa vào đặc trưng thể loại trong Sổ Tay Bí Kíp để nhận diện.',
+                        options: [
+                            q1Correct,
+                            'Phương án nhiễu 1: Không xuất hiện dấu hiệu nghệ thuật nào.',
+                            'Phương án nhiễu 2: Văn bản hành chính công vụ thuần túy.',
+                            'Phương án nhiễu 3: Thể thơ lục bát truyền thống.'
+                        ],
+                        correctIndex: 0,
+                        explanation: `<strong>Đáp án chuẩn (0.75đ):</strong> ${q1Correct}`
+                    },
+                    {
+                        stepNumber: 2,
+                        level: 'BƯỚC 2: TRUY TÌM DẤU VẾT BẰNG KÍNH LÚP (0.75 ĐIỂM)',
+                        type: 'line-select',
+                        points: 0.75,
+                        prompt: q2Prompt,
+                        hint: `Hãy kiểm tra kỹ dòng [${q2Line}] trong văn bản bên trái.`,
+                        targetLineIds: [q2Line],
+                        options: lineOptions,
+                        correctIndex: q2CorrectIdx >= 0 ? q2CorrectIdx : 0,
+                        explanation: `<strong>Đáp án chuẩn (0.75đ):</strong> Dòng [${q2Line}] là vị trí chứa dấu hiệu nghệ thuật chính xác.`
+                    },
+                    {
+                        stepNumber: 3,
+                        level: 'BƯỚC 3: THÔNG HIỂU (1.0 ĐIỂM)',
+                        type: 'mcq',
+                        points: 1.0,
+                        prompt: 'Khi phân tích tác dụng của chi tiết/biện pháp nghệ thuật trong đoạn trích trên, cách trả lời nào đạt điểm tối đa theo Barem Bộ GD&ĐT?',
+                        hint: 'Luôn nhớ công thức: Nghệ thuật + Nội dung + Tình cảm tác giả.',
+                        options: [
+                            'Chỉ rõ dấu hiệu từ ngữ; phân tích tác dụng nghệ thuật (tạo hình ảnh sinh động, giàu nhịp điệu) và tác dụng nội dung (nhấn mạnh chủ đề, thể hiện thái độ/cảm xúc của tác giả).',
+                            'Chỉ gọi tên biện pháp tu từ mà không phân tích bất kỳ tác dụng nào.',
+                            'Diễn xuôi lại đoạn trích bằng lời văn hàng ngày.',
+                            'Chỉ nêu tác dụng hình thức mà bỏ qua nội dung tư tưởng của văn bản.'
+                        ],
+                        correctIndex: 0,
+                        explanation: '<strong>Chuẩn Barem (1.0đ):</strong> Luôn kết hợp đủ 2 phương diện Nghệ thuật và Nội dung tư tưởng.'
+                    },
+                    {
+                        stepNumber: 4,
+                        level: 'BƯỚC 4: VẬN DỤNG VIẾT ĐOẠN NGẮN (1.5 ĐIỂM)',
+                        type: 'mcq',
+                        points: 1.5,
+                        prompt: 'Để trả lời câu hỏi Vận dụng rút ra thông điệp từ văn bản trên (5–7 dòng), bạn cần triển khai theo cấu trúc nào?',
+                        hint: 'Đoạn văn ngắn 5–7 dòng cần có: Nêu thông điệp -> Lý giải vì sao -> Bài học hành động.',
+                        options: [
+                            'Nêu trực tiếp thông điệp ý nghĩa nhất; lý giải sâu sắc ý nghĩa của thông điệp đối với cuộc sống và liên hệ bài học nhận thức, hành động của bản thân.',
+                            'Gạch đầu dòng một cụm từ ngắn ngủi không có câu chủ ngữ - vị ngữ.',
+                            'Chép lại nguyên xi toàn bộ văn bản đọc hiểu vào giấy thi.',
+                            'Kể một câu chuyện không liên quan đến nội dung ngữ liệu.'
+                        ],
+                        correctIndex: 0,
+                        explanation: '<strong>Chuẩn Barem (1.5đ):</strong> Cấu trúc 3 phần (Nêu thông điệp + Lý giải + Bài học cá nhân) giúp ăn trọn 1.5 điểm.'
+                    }
+                ]
+            };
+
+            casesData.push(newCase);
+            progressState[newCase.id] = {
+                stepScores: [0, 0, 0, 0],
+                stepAnswered: [false, false, false, false],
+                selectedAnswer: [null, null, null, null],
+                used5050: [false, false, false, false]
+            };
+
+            // Lưu vào localStorage
+            try {
+                const customList = casesData.filter(c => c.id.startsWith('custom-'));
+                localStorage.setItem('tham_tu_ngu_lieu_custom_cases', JSON.stringify(customList));
+            } catch (err) {
+                console.warn(err);
+            }
+
+            closeModal('custom-case-modal');
+            document.getElementById('custom-case-form').reset();
+            currentCaseIndex = casesData.length - 1;
+            currentStepIndex = 0;
+            playTone('correct');
+            renderAll();
+        }
+
+        // Khởi chạy Game khi tải trang
+        window.onload = function () {
+            initProgressState();
+            renderAll();
+        };
+    </script>
+</body>
+</html>
